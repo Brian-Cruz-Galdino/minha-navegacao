@@ -53,8 +53,10 @@
         }
 
         input[type="text"],
+        input[type="password"],
+        input[type="email"],
         input[type="number"],
-        input[type="datetime-local"],
+        input[type="date"],
         textarea {
             width: 100%;
             padding: 10px;
@@ -88,9 +90,16 @@
             padding: 10px;
             box-sizing: border-box;
         }
+        
+        .coluna-3 {
+             width: 32%;
+            float: left;
+            padding: 10px;
+            box-sizing: border-box;
+        }
 
-        @media (max-width: 768px) {
-            .coluna {
+        @media (max-width: 900px) {
+            .coluna, .coluna-3 {
                 width: 100%;
                 float: none;
             }
@@ -112,6 +121,7 @@
 
         .card p {
             margin: 5px 0;
+            word-wrap: break-word;
         }
 
         .card-acoes {
@@ -142,6 +152,10 @@
         h2 {
             border-bottom: 2px solid var(--cor-laranja);
             padding-bottom: 5px;
+        }
+        
+        h3 {
+             margin-top: 0;
         }
 
         #log-console {
@@ -177,10 +191,54 @@
     <div class="container">
 
         <div class="api-key-section">
-            <label for="apiKey">API Key:</label>
-            <input type="text" id="apiKey" value="SUA_API_KEY_AQUI" style="width: 70%;">
-            <button onclick="salvarApiKey()">Salvar Key</button>
+            <label for="apiKey">Sua API Key Ativa:</label>
+            <input type="text" id="apiKey" value="COLE_SUA_KEY_GERADA_AQUI" style="width: 70%;">
+            <button onclick="salvarApiKey()">Usar esta Key</button>
+            <p style="font-size: 14px; margin-top: 10px;">Gere uma chave na seção 'Usuários e API Keys' abaixo e cole aqui para testar os endpoints protegidos.</p>
         </div>
+        
+        <section id="usuarios-keys-section">
+            <h2>Usuários e API Keys</h2>
+            <div class="clearfix">
+                <div class="coluna-3">
+                    <form id="form-criar-usuario">
+                        <h3>Criar Novo Usuário</h3>
+                        <label for="usuario-nome">Nome:</label>
+                        <input type="text" id="usuario-nome" required>
+                        
+                        <label for="usuario-email">Email:</label>
+                        <input type="email" id="usuario-email" required>
+
+                        <label for="usuario-senha">Senha:</label>
+                        <input type="password" id="usuario-senha" required>
+
+                        <button type="submit">Criar Usuário</button>
+                    </form>
+                </div>
+                
+                <div class="coluna-3">
+                     <form id="form-gerar-key">
+                        <h3>Gerar API Key</h3>
+                        <label for="key-usuario-id">ID do Usuário:</label>
+                        <input type="number" id="key-usuario-id" required>
+                        <button type="submit">Gerar Key</button>
+                    </form>
+                    <div id="nova-key-display" class="card" style="margin-top: 15px; display: none;">
+                        <h4>Nova Chave Gerada:</h4>
+                        <p id="nova-key-valor" style="color: var(--cor-laranja); font-weight: bold;"></p>
+                    </div>
+                </div>
+
+                <div class="coluna-3">
+                    <h3>Lista de Usuários</h3>
+                    <button onclick="listarUsuarios()">Atualizar Lista de Usuários</button>
+                    <div id="lista-usuarios" style="margin-top: 15px;">
+                        </div>
+                </div>
+            </div>
+        </section>
+        
+        <hr style="border-color: var(--cor-borda); margin: 25px 0;">
 
         <div class="clearfix">
             <div class="coluna">
@@ -192,7 +250,7 @@
                         <input type="text" id="artista-nome" required>
                         
                         <label for="artista-genero">Gênero Musical:</label>
-                        <input type="text" id="artista-genero">
+                        <input type="text" id="artista-genero" required>
 
                         <label for="artista-bio">Biografia:</label>
                         <textarea id="artista-bio" rows="3"></textarea>
@@ -219,7 +277,7 @@
                         <input type="text" id="evento-local" required>
                         
                         <label for="evento-data">Data:</label>
-                        <input type="datetime-local" id="evento-data" required>
+                        <input type="date" id="evento-data" required>
 
                         <label for="evento-capacidade">Capacidade:</label>
                         <input type="number" id="evento-capacidade" required>
@@ -257,10 +315,9 @@
 
     <script>
         // --- Configuração Global ---
-        // AQUI ESTÁ A MUDANÇA:
-        const API_BASE_URL = "https://api-festival.onrender.com/api/v1"; // <-- MUDE AQUI!
+        const API_BASE_URL = "https://api-festival.onrender.com/api/v1";
         
-        let API_KEY = localStorage.getItem('apiKey') || 'SUA_API_KEY_AQUI';
+        let API_KEY = localStorage.getItem('apiKey') || 'COLE_SUA_KEY_GERADA_AQUI';
         document.getElementById('apiKey').value = API_KEY;
 
         const logConsole = document.getElementById('log-console');
@@ -270,7 +327,7 @@
         function salvarApiKey() {
             API_KEY = document.getElementById('apiKey').value;
             localStorage.setItem('apiKey', API_KEY);
-            log(`API Key salva.`);
+            log(`API Key salva. As próximas requisições usarão esta chave.`);
         }
 
         function log(message, isError = false) {
@@ -283,18 +340,22 @@
             logConsole.scrollTop = logConsole.scrollHeight;
         }
 
-        /**
-         * Wrapper genérico para a função fetch
-         * @param {string} endpoint O caminho do endpoint (ex: /eventos)
-         * @param {object} options As opções do fetch (method, body, etc)
-         */
         async function apiFetch(endpoint, options = {}) {
             const url = `${API_BASE_URL}${endpoint}`;
+            
+            // Rotas públicas não precisam da API Key
+            const isPublic = endpoint.startsWith('/usuarios') || 
+                             endpoint.startsWith('/apikeys/generate') || 
+                             endpoint.startsWith('/auth/login');
+                             
             const headers = {
                 'Content-Type': 'application/json',
-                'X-API-Key': API_KEY,
                 ...options.headers,
             };
+            
+            if (!isPublic) {
+                headers['X-API-Key'] = API_KEY;
+            }
 
             const config = {
                 ...options,
@@ -305,23 +366,27 @@
 
             try {
                 const response = await fetch(url, config);
+                let responseBody = await response.text(); // Ler como texto primeiro
 
                 if (!response.ok) {
-                    const errorBody = await response.json();
                     let errorMsg = `HTTP ${response.status} - ${response.statusText}`;
-                    if (errorBody && errorBody.message) {
-                        errorMsg += `: ${errorBody.message}`;
+                    try {
+                        const errorBodyJson = JSON.parse(responseBody); // Tenta parsear JSON
+                        if (errorBodyJson && errorBodyJson.message) {
+                            errorMsg += `: ${errorBodyJson.message}`;
+                        }
+                    } catch (e) {
+                        errorMsg += `: ${responseBody}`; // Se não for JSON, usa o texto
                     }
                     throw new Error(errorMsg);
                 }
                 
-                // Endpoints 204 (No Content) não têm corpo
-                if (response.status === 204) {
+                if (response.status === 204 || responseBody.length === 0) {
                     log(`SUCCESS: ${config.method || 'GET'} ${url} (204 No Content)`);
                     return null;
                 }
-
-                const data = await response.json();
+                
+                const data = JSON.parse(responseBody); // Parsear JSON agora
                 log(`SUCCESS: ${config.method || 'GET'} ${url}`);
                 return data;
 
@@ -330,20 +395,97 @@
                 throw error;
             }
         }
+        
+        // --- Lógica de USUÁRIOS E API KEYS (NOVO) ---
+        
+        // POST /usuarios
+        document.getElementById('form-criar-usuario').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const body = {
+                nome: document.getElementById('usuario-nome').value,
+                email: document.getElementById('usuario-email').value,
+                senha: document.getElementById('usuario-senha').value
+                // O tipo é 'CLIENTE' por padrão no backend
+            };
+
+            try {
+                const novoUsuario = await apiFetch('/usuarios', {
+                    method: 'POST',
+                    body: JSON.stringify(body),
+                });
+                log(`Usuário "${novoUsuario.nome}" (ID: ${novoUsuario.id}) criado.`);
+                this.reset();
+                listarUsuarios(); // Atualiza a lista
+            } catch (error) {
+                log(`Falha ao criar usuário: ${error.message}`, true);
+            }
+        });
+        
+        // POST /apikeys/generate/{id}
+        document.getElementById('form-gerar-key').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const usuarioId = document.getElementById('key-usuario-id').value;
+            const display = document.getElementById('nova-key-display');
+            const valorDisplay = document.getElementById('nova-key-valor');
+
+            try {
+                const novaKey = await apiFetch(`/apikeys/generate/${usuarioId}`, {
+                    method: 'POST'
+                });
+                log(`API Key gerada para Usuário ID ${usuarioId}.`);
+                valorDisplay.textContent = novaKey.chave;
+                display.style.display = 'block';
+                
+                // Salva automaticamente a nova chave para uso
+                document.getElementById('apiKey').value = novaKey.chave;
+                salvarApiKey();
+                
+                this.reset();
+            } catch (error) {
+                log(`Falha ao gerar key: ${error.message}`, true);
+                display.style.display = 'none';
+            }
+        });
+
+        // GET /usuarios
+        async function listarUsuarios() {
+            const container = document.getElementById('lista-usuarios');
+            container.innerHTML = "<p>Carregando usuários...</p>";
+            try {
+                const usuarios = await apiFetch('/usuarios'); // Este endpoint não é paginado
+                container.innerHTML = ""; 
+                if (usuarios.length === 0) {
+                    container.innerHTML = "<p>Nenhum usuário encontrado.</p>";
+                    return;
+                }
+                usuarios.forEach(usuario => {
+                    container.appendChild(criarCardUsuario(usuario));
+                });
+            } catch (error) {
+                container.innerHTML = `<p class="error">Erro ao carregar usuários: ${error.message}</p>`;
+            }
+        }
+        
+        function criarCardUsuario(usuario) {
+            const div = document.createElement('div');
+            div.className = 'card';
+            div.innerHTML = `
+                <p><strong>ID: ${usuario.id}</strong></p>
+                <p>${usuario.nome}</p>
+                <p>${usuario.email} (${usuario.tipo})</p>
+            `;
+            return div;
+        }
 
         // --- Lógica de ARTISTAS ---
 
         // POST /artistas
         document.getElementById('form-criar-artista').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const nome = document.getElementById('artista-nome').value;
-            const generoMusical = document.getElementById('artista-genero').value;
-            const biografia = document.getElementById('artista-bio').value;
-
             const body = {
-                nome,
-                generoMusical,
-                biografia
+                nome: document.getElementById('artista-nome').value,
+                generoMusical: document.getElementById('artista-genero').value,
+                biografia: document.getElementById('artista-bio').value
             };
 
             try {
@@ -352,8 +494,8 @@
                     body: JSON.stringify(body),
                 });
                 log(`Artista "${novoArtista.nome}" criado com ID: ${novoArtista.id}.`);
-                this.reset(); // Limpa o formulário
-                listarArtistas(); // Atualiza a lista
+                this.reset();
+                listarArtistas();
             } catch (error) {
                 log(`Falha ao criar artista: ${error.message}`, true);
             }
@@ -363,22 +505,18 @@
         async function listarArtistas() {
             const container = document.getElementById('lista-artistas');
             container.innerHTML = "<p>Carregando artistas...</p>";
-
             try {
-                // A API usa paginação, pegamos a primeira página
                 const response = await apiFetch('/artistas?page=0&size=20&sort=nome&direction=asc');
-                const artistas = response.content; // 'content' vem do PageResponse
+                const artistas = response.content; 
                 
-                container.innerHTML = ""; // Limpa "Carregando..."
+                container.innerHTML = ""; 
                 if (artistas.length === 0) {
                     container.innerHTML = "<p>Nenhum artista encontrado.</p>";
                     return;
                 }
-
                 artistas.forEach(artista => {
                     container.appendChild(criarCardArtista(artista));
                 });
-
             } catch (error) {
                 container.innerHTML = `<p class="error">Erro ao carregar artistas: ${error.message}</p>`;
             }
@@ -392,7 +530,7 @@
             try {
                 await apiFetch(`/artistas/${id}`, { method: 'DELETE' });
                 log(`Artista ID ${id} excluído com sucesso.`);
-                listarArtistas(); // Atualiza a lista
+                listarArtistas();
             } catch (error) {
                 log(`Erro ao excluir artista ID ${id}: ${error.message}`, true);
             }
@@ -407,24 +545,28 @@
                 <p><strong>Gênero:</strong> ${artista.generoMusical || 'N/A'}</p>
                 <div class="card-acoes">
                     <button class="delete" onclick="deletarArtista(${artista.id})">Excluir</button>
-                    </div>
+                </div>
             `;
             return div;
         }
 
         // --- Lógica de EVENTOS ---
 
-        // POST /eventos
+        // POST /eventos (CORRIGIDO)
         document.getElementById('form-criar-evento').addEventListener('submit', async function(e) {
             e.preventDefault();
+            
+            // CORREÇÃO: O backend espera 'LocalDate', então enviamos 'YYYY-MM-DD'
+            const dataValor = document.getElementById('evento-data').value;
+            
             const body = {
                 nome: document.getElementById('evento-nome').value,
                 local: document.getElementById('evento-local').value,
-                dataEvento: document.getElementById('evento-data').value,
+                dataEvento: dataValor, // Ex: "2024-10-25"
                 capacidadeMaxima: parseInt(document.getElementById('evento-capacidade').value),
                 precoIngresso: parseFloat(document.getElementById('evento-preco').value),
-                status: "AGENDADO", // Status padrão
-                artistas: [] // A API de criação de evento parece aceitar lista de artistas
+                status: "DISPONIVEL", // CORREÇÃO: "AGENDADO" não existe no Enum
+                artistas: [] 
             };
             
             try {
@@ -433,8 +575,8 @@
                     body: JSON.stringify(body),
                 });
                 log(`Evento "${novoEvento.nome}" criado com ID: ${novoEvento.id}.`);
-                this.reset(); // Limpa o formulário
-                listarEventos(); // Atualiza a lista
+                this.reset();
+                listarEventos();
             } catch (error) {
                 log(`Falha ao criar evento: ${error.message}`, true);
             }
@@ -444,21 +586,20 @@
         async function listarEventos() {
             const container = document.getElementById('lista-eventos');
             container.innerHTML = "<p>Carregando eventos...</p>";
-
             try {
+                // Seu 'import.sql' tem datas no passado, a validação @Future pode impedi-las de serem criadas
+                // Mas a listagem deve funcionar.
                 const response = await apiFetch('/eventos?page=0&size=20&sort=dataEvento&direction=asc');
-                const eventos = response.content; // 'content' vem do PageResponse
+                const eventos = response.content; 
                 
-                container.innerHTML = ""; // Limpa "Carregando..."
+                container.innerHTML = ""; 
                 if (eventos.length === 0) {
                     container.innerHTML = "<p>Nenhum evento encontrado.</p>";
                     return;
                 }
-
                 eventos.forEach(evento => {
                     container.appendChild(criarCardEvento(evento));
                 });
-
             } catch (error) {
                 container.innerHTML = `<p class="error">Erro ao carregar eventos: ${error.message}</p>`;
             }
@@ -468,7 +609,6 @@
         async function listarIngressos(eventoId) {
              const container = document.getElementById('lista-ingressos');
              container.innerHTML = `<p>Carregando ingressos para o evento ID ${eventoId}...</p>`;
-             
              try {
                 const ingressos = await apiFetch(`/eventos/${eventoId}/ingressos`);
                 container.innerHTML = `<h3>Ingressos do Evento ${eventoId}</h3>`;
@@ -490,9 +630,7 @@
                     `;
                     container.appendChild(div);
                 });
-                
              } catch (error) {
-                 // A API retorna 204 (No Content) se estiver vazio, que o apiFetch trata como 'null'
                  if (error.message.includes("204")) {
                      container.innerHTML = `<h3>Ingressos do Evento ${eventoId}</h3>`;
                      container.innerHTML += "<p>Nenhum ingresso encontrado para este evento.</p>";
@@ -510,7 +648,7 @@
             try {
                 await apiFetch(`/eventos/${id}`, { method: 'DELETE' });
                 log(`Evento ID ${id} excluído com sucesso.`);
-                listarEventos(); // Atualiza a lista
+                listarEventos();
             } catch (error) {
                 log(`Erro ao excluir evento ID ${id}: ${error.message}`, true);
             }
@@ -520,12 +658,14 @@
             const div = document.createElement('div');
             div.className = 'card';
             
-            // O objeto 'evento' que vem da API não tem 'dataEvento', mas sim 'dataEvento'
-            // A API Representation que você me mandou não tem 'ingressosVendidos' ou 'capacidade'
-            // Vou usar os campos que eu *sei* que existem pelo seu `EventoRepresentation.java` (que não foi fornecido, mas posso inferir)
-            
-            // Vamos assumir que 'evento' tem os campos corretos
-            const dataFormatada = new Date(evento.dataEvento).toLocaleString('pt-BR');
+            // CORREÇÃO: Formatar 'YYYY-MM-DD' para 'DD/MM/YYYY'
+            let dataFormatada = evento.dataEvento;
+            try {
+                const parts = evento.dataEvento.split('T')[0].split('-');
+                dataFormatada = `${parts[2]}/${parts[1]}/${parts[0]}`;
+            } catch (e) {
+                // Deixa a data como está se o split falhar
+            }
             
             div.innerHTML = `
                 <h3>${evento.nome}</h3>
@@ -534,7 +674,7 @@
                 <p><strong>Data:</strong> ${dataFormatada}</p>
                 <p><strong>Status:</strong> ${evento.status}</p>
                 
-                <p><strong>Capacidade:</strong> ${evento.capacidade || 'N/A'}</p> 
+                <p><strong>Capacidade:</strong> ${evento.capacidadeMaxima || 'N/A'}</p> 
                 <p><strong>Preço:</strong> R$ ${evento.precoIngresso ? evento.precoIngresso.toFixed(2) : 'N/A'}</p>
                 
                 <div class="card-acoes">
@@ -546,8 +686,9 @@
         }
 
         // --- Inicialização ---
-        // Carrega as listas iniciais quando a página é aberta
         document.addEventListener('DOMContentLoaded', () => {
+            log("Bem-vindo! Crie um usuário e gere uma API key para começar.");
+            listarUsuarios();
             listarArtistas();
             listarEventos();
         });

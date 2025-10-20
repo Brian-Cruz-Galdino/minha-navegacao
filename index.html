@@ -959,7 +959,7 @@
             return div;
         }
 
-        // --- Lógica de INGRESSOS (Comprar, Editar e Cancelar) ---
+        // --- Lógica de INGRESSOS (Comprar, Editar e Deletar) ---
         
         function preencherFormCompra(eventoId, eventoNome) {
             document.getElementById('form-comprar-ingresso').style.display = 'block';
@@ -968,18 +968,20 @@
             document.getElementById('form-comprar-ingresso').scrollIntoView({ behavior: 'smooth' });
         }
         
-        // POST /eventos/{eventoId}/ingressos (CORRIGIDO)
+        // POST /eventos/{eventoId}/ingressos (Corrigido)
         document.getElementById('form-comprar-ingresso').addEventListener('submit', async function(e) {
             e.preventDefault();
             
             const eventoId = document.getElementById('ingresso-evento-id').value;
+            // O CreateIngressoRequest.java espera o eventoId no corpo
             const body = {
                 nomeComprador: document.getElementById('ingresso-nome').value,
                 emailComprador: document.getElementById('ingresso-email').value,
                 quantidade: parseInt(document.getElementById('ingresso-quantidade').value),
-                eventoId: parseInt(eventoId) // <-- CORREÇÃO: Adicionado eventoId ao body
+                eventoId: parseInt(eventoId) // <-- Esta era a correção que faltava
             };
             
+            // O EventoResource.java espera o header "x-idempotency-key"
             const idempotencyKey = gerarIdempotencyKey();
             log(`Gerando Idempotency-Key: ${idempotencyKey}`);
             
@@ -1029,20 +1031,18 @@
              }
         }
         
-        // NOVO: Submit do form "Editar Ingresso"
+        // Submit do form "Editar Ingresso"
         document.getElementById('form-editar-ingresso').addEventListener('submit', async function(e) {
             e.preventDefault();
             const ingressoId = document.getElementById('edit-ingresso-id').value;
             const eventoId = document.getElementById('edit-ingresso-evento-id').value;
             
-            // O backend (IngressoResource.java) PUT /{id} espera um objeto Ingresso
-            //
+            // O endpoint PUT /ingressos/{id} espera estes 4 campos
             const body = {
                 nomeComprador: document.getElementById('edit-ingresso-nome').value,
                 emailComprador: document.getElementById('edit-ingresso-email').value,
                 quantidade: parseInt(document.getElementById('edit-ingresso-quantidade').value),
                 status: document.getElementById('edit-ingresso-status').value
-                // O endpoint PUT /{id} só atualiza estes 4 campos
             };
 
             try {
@@ -1052,18 +1052,16 @@
                 });
                 log(`Ingresso ID ${ingressoId} atualizado com sucesso.`);
                 cancelarEdicaoIngresso();
-                listarIngressos(eventoId); // Recarrega a lista de ingressos
+                listarIngressos(eventoId);
             } catch (error) {
                 log(`Falha ao atualizar ingresso: ${error.message}`, true);
             }
         });
         
-        // NOVO: Funções para preencher e cancelar o form de edição de ingresso
         function preencherFormEdicaoIngresso(ingresso) {
-            // O 'ingresso' aqui é o IngressoRepresentation
             document.getElementById('form-edita-titulo').textContent = `Editar Ingresso ID: ${ingresso.id}`;
             document.getElementById('edit-ingresso-id').value = ingresso.id;
-            document.getElementById('edit-ingresso-evento-id').value = ingresso.eventoId; // Salva o eventoId
+            document.getElementById('edit-ingresso-evento-id').value = ingresso.eventoId; 
             document.getElementById('edit-ingresso-nome').value = ingresso.nomeComprador;
             document.getElementById('edit-ingresso-email').value = ingresso.emailComprador;
             document.getElementById('edit-ingresso-quantidade').value = ingresso.quantidade;
@@ -1078,7 +1076,7 @@
             document.getElementById('form-editar-ingresso').reset();
         }
         
-        // Card de Ingresso (com botão Editar e Cancelar)
+        // Card de Ingresso (com botão Editar e Deletar)
         function criarCardIngresso(ingresso) {
              const div = document.createElement('div');
              div.className = 'card';
@@ -1092,25 +1090,26 @@
                 <p><strong>Preço Total:</strong> R$ ${ingresso.precoTotal.toFixed(2)}</p>
                 <div class="card-acoes">
                     <button onclick='preencherFormEdicaoIngresso(${ingressoJson})'>Editar</button>
-                    <button class="delete" onclick="cancelarIngresso(${ingresso.id}, ${ingresso.eventoId})">Cancelar Ingresso</button>
+                    <button class="delete" onclick="deletarIngresso(${ingresso.id}, ${ingresso.eventoId})">Deletar Ingresso</button>
                 </div>
             `;
             return div;
         }
         
-        // PUT /ingressos/{id}/status?status=CANCELADO
-        async function cancelarIngresso(ingressoId, eventoId) {
-            if (!confirm(`Tem certeza que deseja cancelar o ingresso ID ${ingressoId}?`)) {
+        // **** CORREÇÃO AQUI: Função agora chama o endpoint DELETE ****
+        // DELETE /ingressos/{id}
+        async function deletarIngresso(ingressoId, eventoId) {
+            if (!confirm(`Tem certeza que deseja DELETAR o ingresso ID ${ingressoId}? Esta ação não pode ser desfeita.`)) {
                 return;
             }
             try {
-                // Chama o endpoint de status
-                await apiFetch(`/ingressos/${ingressoId}/status?status=CANCELADO`, { method: 'PUT' });
-                log(`Ingresso ID ${ingressoId} cancelado com sucesso.`);
-                listarIngressos(eventoId); 
-                listarEventos(); 
+                // Chama o endpoint DELETE
+                await apiFetch(`/ingressos/${ingressoId}`, { method: 'DELETE' });
+                log(`Ingresso ID ${ingressoId} DELETADO com sucesso.`);
+                listarIngressos(eventoId); // Atualiza a lista de ingressos
+                listarEventos(); // Atualiza a lista de eventos (status pode mudar)
             } catch (error) {
-                log(`Erro ao cancelar ingresso ID ${ingressoId}: ${error.message}`, true);
+                log(`Erro ao DELETAR ingresso ID ${ingressoId}: ${error.message}`, true);
             }
         }
 

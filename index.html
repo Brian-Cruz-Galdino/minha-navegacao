@@ -230,19 +230,21 @@
         
         <section id="usuarios-keys-section">
             <h2>Usuários e API Keys</h2>
-            <p style="font-size: 14px;">(OBS: A API não suporta editar ou deletar usuários, apenas criar e listar)</p>
             <div class="clearfix">
                 <div class="coluna-3">
-                    <form id="form-criar-usuario">
-                        <h3>Criar Novo Usuário</h3>
+                    <form id="form-usuario"> <h3 id="form-usuario-titulo">Criar Novo Usuário</h3>
+                        <input type="hidden" id="usuario-id-edit">
+                        
                         <label for="usuario-nome">Nome:</label>
                         <input type="text" id="usuario-nome" required>
                         
                         <label for="usuario-email">Email:</label>
                         <input type="email" id="usuario-email" required>
 
-                        <label for="usuario-senha">Senha:</label>
-                        <input type="password" id="usuario-senha" required>
+                        <div id="campo-senha-usuario">
+                            <label for="usuario-senha">Senha:</label>
+                            <input type="password" id="usuario-senha">
+                        </div>
                         
                         <label for="usuario-tipo">Tipo:</label>
                         <select id="usuario-tipo">
@@ -251,7 +253,8 @@
                             <option value="ORGANIZADOR">ORGANIZADOR</option>
                         </select>
 
-                        <button type="submit">Criar Usuário</button>
+                        <button type="submit" id="btn-submit-usuario">Criar Usuário</button>
+                        <button type="button" class="btn-cancelar" id="btn-cancelar-edicao-usuario" style="display: none;" onclick="cancelarEdicaoUsuario()">Cancelar Edição</button>
                     </form>
                 </div>
                 
@@ -294,7 +297,8 @@
             <div class="coluna">
                 <section id="artistas-section">
                     <h2>Artistas</h2>
-                    <form id="form-artista"> <h3 id="form-artista-titulo">Criar Novo Artista</h3>
+                    <form id="form-artista">
+                        <h3 id="form-artista-titulo">Criar Novo Artista</h3>
                         <input type="hidden" id="artista-id-edit">
                         
                         <label for="artista-nome">Nome:</label>
@@ -320,7 +324,8 @@
             <div class="coluna">
                 <section id="eventos-section">
                     <h2>Eventos</h2>
-                    <form id="form-evento"> <h3 id="form-evento-titulo">Criar Novo Evento</h3>
+                    <form id="form-evento">
+                        <h3 id="form-evento-titulo">Criar Novo Evento</h3>
                         <input type="hidden" id="evento-id-edit">
                         
                         <label for="evento-nome">Nome:</label>
@@ -424,6 +429,11 @@
             logConsole.scrollTop = logConsole.scrollHeight;
         }
 
+        // Função que gera uma string aleatória simples para Idempotência
+        function gerarIdempotencyKey() {
+             return 'key-' + Date.now().toString() + '-' + Math.random().toString(36).substring(2, 9);
+        }
+
         async function apiFetch(endpoint, options = {}) {
             const url = `${API_BASE_URL}${endpoint}`;
             const method = options.method || 'GET';
@@ -481,28 +491,52 @@
             }
         }
         
-        // --- Lógica de USUÁRIOS E API KEYS ---
+        // --- Lógica de USUÁRIOS E API KEYS (COM CRUD) ---
         
-        // POST /usuarios
-        document.getElementById('form-criar-usuario').addEventListener('submit', async function(e) {
+        // NOVO: Submit do form de Usuário (Criação e Edição)
+        document.getElementById('form-usuario').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const body = {
-                nome: document.getElementById('usuario-nome').value,
-                email: document.getElementById('usuario-email').value,
-                senha: document.getElementById('usuario-senha').value,
-                tipo: document.getElementById('usuario-tipo').value 
-            };
+            const usuarioId = document.getElementById('usuario-id-edit').value;
+            
+            if (usuarioId) {
+                // Modo Edição (PUT)
+                const body = {
+                    nome: document.getElementById('usuario-nome').value,
+                    email: document.getElementById('usuario-email').value,
+                    tipo: document.getElementById('usuario-tipo').value
+                };
+                
+                try {
+                    const usuarioAtualizado = await apiFetch(`/usuarios/${usuarioId}`, {
+                        method: 'PUT',
+                        body: JSON.stringify(body),
+                    });
+                    log(`Usuário "${usuarioAtualizado.nome}" (ID: ${usuarioId}) atualizado.`);
+                    cancelarEdicaoUsuario(); 
+                    listarUsuarios();
+                } catch (error) {
+                    log(`Falha ao atualizar usuário: ${error.message}`, true);
+                }
+            } else {
+                // Modo Criação (POST)
+                const body = {
+                    nome: document.getElementById('usuario-nome').value,
+                    email: document.getElementById('usuario-email').value,
+                    senha: document.getElementById('usuario-senha').value,
+                    tipo: document.getElementById('usuario-tipo').value 
+                };
 
-            try {
-                const novoUsuario = await apiFetch('/usuarios', {
-                    method: 'POST',
-                    body: JSON.stringify(body),
-                });
-                log(`Usuário "${novoUsuario.nome}" (ID: ${novoUsuario.id}) criado.`);
-                this.reset();
-                listarUsuarios();
-            } catch (error) {
-                log(`Falha ao criar usuário: ${error.message}`, true);
+                try {
+                    const novoUsuario = await apiFetch('/usuarios', {
+                        method: 'POST',
+                        body: JSON.stringify(body),
+                    });
+                    log(`Usuário "${novoUsuario.nome}" (ID: ${novoUsuario.id}) criado.`);
+                    this.reset();
+                    listarUsuarios();
+                } catch (error) {
+                    log(`Falha ao criar usuário: ${error.message}`, true);
+                }
             }
         });
         
@@ -550,18 +584,69 @@
             }
         }
         
+        // NOVO: Preencher formulário de Usuário para edição
+        function preencherFormEdicaoUsuario(usuario) {
+            document.getElementById('form-usuario-titulo').textContent = `Editando Usuário: ${usuario.nome}`;
+            document.getElementById('usuario-id-edit').value = usuario.id;
+            document.getElementById('usuario-nome').value = usuario.nome;
+            document.getElementById('usuario-email').value = usuario.email;
+            document.getElementById('usuario-tipo').value = usuario.tipo;
+            
+            // Esconde o campo senha, pois não vamos atualizá-la
+            document.getElementById('campo-senha-usuario').style.display = 'none';
+            document.getElementById('usuario-senha').required = false;
+            
+            document.getElementById('btn-submit-usuario').textContent = "Atualizar Usuário";
+            document.getElementById('btn-cancelar-edicao-usuario').style.display = 'inline-block';
+            document.getElementById('form-usuario').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // NOVO: Cancelar edição de Usuário
+        function cancelarEdicaoUsuario() {
+            document.getElementById('form-usuario-titulo').textContent = "Criar Novo Usuário";
+            document.getElementById('form-usuario').reset();
+            document.getElementById('usuario-id-edit').value = "";
+            
+            document.getElementById('campo-senha-usuario').style.display = 'block';
+            document.getElementById('usuario-senha').required = true;
+
+            document.getElementById('btn-submit-usuario').textContent = "Criar Usuário";
+            document.getElementById('btn-cancelar-edicao-usuario').style.display = 'none';
+        }
+        
+        // NOVO: Deletar Usuário (DELETE /usuarios/{id})
+        async function deletarUsuario(id) {
+            if (!confirm(`Tem certeza que deseja excluir o USUÁRIO ID ${id}? Isso revogará todas as suas API Keys.`)) {
+                return;
+            }
+            try {
+                await apiFetch(`/usuarios/${id}`, { method: 'DELETE' });
+                log(`Usuário ID ${id} excluído com sucesso.`);
+                listarUsuarios();
+            } catch (error) {
+                log(`Erro ao excluir usuário ID ${id}: ${error.message}`, true);
+            }
+        }
+        
+        // Card de Usuário (com botões Editar/Excluir)
         function criarCardUsuario(usuario) {
             const div = document.createElement('div');
             div.className = 'card';
+            const usuarioJson = JSON.stringify(usuario).replace(/'/g, "\\'");
+            
             div.innerHTML = `
                 <p><strong>ID: ${usuario.id}</strong></p>
                 <p>${usuario.nome}</p>
                 <p>${usuario.email} (${usuario.tipo})</p>
+                <div class="card-acoes">
+                    <button onclick='preencherFormEdicaoUsuario(${usuarioJson})'>Editar</button>
+                    <button class="delete" onclick="deletarUsuario(${usuario.id})">Excluir</button>
+                </div>
             `;
             return div;
         }
 
-        // NOVO: Listar API Keys (GET /apikeys/usuario/{id})
+        // GET /apikeys/usuario/{id}
         document.getElementById('form-listar-keys').addEventListener('submit', async function(e) {
              e.preventDefault();
              const usuarioId = document.getElementById('list-key-usuario-id').value;
@@ -586,7 +671,6 @@
             }
         }
         
-        // NOVO: Criar Card API Key
         function criarCardApiKey(key) {
             const div = document.createElement('div');
             div.className = 'card';
@@ -601,7 +685,7 @@
             return div;
         }
         
-        // NOVO: Revogar API Key (DELETE /apikeys/{id})
+        // DELETE /apikeys/{id}
         async function revogarApiKey(keyId) {
             if (!confirm(`Tem certeza que deseja revogar a API Key ID ${keyId}?`)) {
                 return;
@@ -609,7 +693,6 @@
             try {
                 await apiFetch(`/apikeys/${keyId}`, { method: 'DELETE' });
                 log(`API Key ID ${keyId} revogada com sucesso.`);
-                // Atualiza a lista de chaves (se o ID do usuário estiver no form)
                 const usuarioId = document.getElementById('list-key-usuario-id').value;
                 if(usuarioId) listarApiKeys(usuarioId);
             } catch (error) {
@@ -618,9 +701,8 @@
         }
 
 
-        // --- Lógica de ARTISTAS (com Edição) ---
+        // --- Lógica de ARTISTAS ---
 
-        // NOVO: Submit do form de Artista (Criação e Edição)
         document.getElementById('form-artista').addEventListener('submit', async function(e) {
             e.preventDefault();
             const artistaId = document.getElementById('artista-id-edit').value;
@@ -632,20 +714,18 @@
             };
             
             if (artistaId) {
-                // Modo Edição (PUT)
                 try {
                     const artistaAtualizado = await apiFetch(`/artistas/${artistaId}`, {
                         method: 'PUT',
                         body: JSON.stringify(body),
                     });
                     log(`Artista "${artistaAtualizado.nome}" (ID: ${artistaId}) atualizado.`);
-                    cancelarEdicaoArtista(); // Limpa o formulário
+                    cancelarEdicaoArtista(); 
                     listarArtistas();
                 } catch (error) {
                     log(`Falha ao atualizar artista: ${error.message}`, true);
                 }
             } else {
-                // Modo Criação (POST)
                 try {
                     const novoArtista = await apiFetch('/artistas', {
                         method: 'POST',
@@ -660,7 +740,6 @@
             }
         });
 
-        // GET /artistas
         async function listarArtistas() {
             const container = document.getElementById('lista-artistas');
             container.innerHTML = "<p>Carregando artistas...</p>";
@@ -674,7 +753,6 @@
                     return;
                 }
                 artistas.forEach(artista => {
-                    // Passa o objeto artista inteiro para a função de criação do card
                     container.appendChild(criarCardArtista(artista));
                 });
             } catch (error) {
@@ -682,7 +760,6 @@
             }
         }
 
-        // DELETE /artistas/{id}
         async function deletarArtista(id) {
             if (!confirm(`Tem certeza que deseja excluir o artista ID ${id}?`)) {
                 return;
@@ -696,7 +773,6 @@
             }
         }
         
-        // NOVO: Preencher formulário de Artista para edição
         function preencherFormEdicaoArtista(artista) {
             document.getElementById('form-artista-titulo').textContent = `Editando Artista: ${artista.nome}`;
             document.getElementById('artista-id-edit').value = artista.id;
@@ -708,7 +784,6 @@
             document.getElementById('form-artista').scrollIntoView({ behavior: 'smooth' });
         }
         
-        // NOVO: Cancelar edição de Artista
         function cancelarEdicaoArtista() {
             document.getElementById('form-artista-titulo').textContent = "Criar Novo Artista";
             document.getElementById('form-artista').reset();
@@ -717,11 +792,9 @@
             document.getElementById('btn-cancelar-edicao-artista').style.display = 'none';
         }
 
-        // Card de Artista (com botão Editar)
         function criarCardArtista(artista) {
             const div = document.createElement('div');
             div.className = 'card';
-            // Precisamos passar o objeto JSON inteiro, então escapamos as aspas
             const artistaJson = JSON.stringify(artista).replace(/'/g, "\\'");
             
             div.innerHTML = `
@@ -736,9 +809,8 @@
             return div;
         }
 
-        // --- Lógica de EVENTOS (com Edição) ---
+        // --- Lógica de EVENTOS ---
 
-        // NOVO: Submit do form de Evento (Criação e Edição)
         document.getElementById('form-evento').addEventListener('submit', async function(e) {
             e.preventDefault();
             const eventoId = document.getElementById('evento-id-edit').value;
@@ -750,12 +822,11 @@
                 dataEvento: dataValor, 
                 capacidadeMaxima: parseInt(document.getElementById('evento-capacidade').value),
                 precoIngresso: parseFloat(document.getElementById('evento-preco').value),
-                status: eventoId ? document.getElementById('evento-status').value : "DISPONIVEL", // Pega status do select se estiver editando
-                artistas: [] // A API de update lida com artistas separadamente
+                status: eventoId ? document.getElementById('evento-status').value : "DISPONIVEL", 
+                artistas: []
             };
             
             if (eventoId) {
-                // Modo Edição (PUT)
                 try {
                     const eventoAtualizado = await apiFetch(`/eventos/${eventoId}`, {
                         method: 'PUT',
@@ -768,7 +839,6 @@
                     log(`Falha ao atualizar evento: ${error.message}`, true);
                 }
             } else {
-                 // Modo Criação (POST)
                 try {
                     const novoEvento = await apiFetch('/eventos', {
                         method: 'POST',
@@ -783,7 +853,6 @@
             }
         });
 
-        // GET /eventos
         async function listarEventos() {
             const container = document.getElementById('lista-eventos');
             container.innerHTML = "<p>Carregando eventos...</p>";
@@ -804,7 +873,6 @@
             }
         }
         
-        // DELETE /eventos/{id}
         async function deletarEvento(id) {
             if (!confirm(`Tem certeza que deseja excluir o evento ID ${id}?`)) {
                 return;
@@ -818,9 +886,7 @@
             }
         }
 
-        // NOVO: Preencher formulário de Evento para edição
         function preencherFormEdicaoEvento(evento) {
-            // A data da API (LocalDate) vem como "YYYY-MM-DD"
             const dataApi = evento.dataEvento.split('T')[0];
             
             document.getElementById('form-evento-titulo').textContent = `Editando Evento: ${evento.nome}`;
@@ -839,7 +905,6 @@
             document.getElementById('form-evento').scrollIntoView({ behavior: 'smooth' });
         }
         
-        // NOVO: Cancelar edição de Evento
         function cancelarEdicaoEvento() {
             document.getElementById('form-evento-titulo').textContent = "Criar Novo Evento";
             document.getElementById('form-evento').reset();
@@ -849,7 +914,6 @@
             document.getElementById('btn-cancelar-edicao-evento').style.display = 'none';
         }
 
-        // Card de Evento (com botão Editar)
         function criarCardEvento(evento) {
             const div = document.createElement('div');
             div.className = 'card';
@@ -860,7 +924,6 @@
                 dataFormatada = `${parts[2]}/${parts[1]}/${parts[0]}`;
             } catch (e) {}
             
-            // Passa o objeto JSON do evento para o preenchimento do formulário
             const eventoJson = JSON.stringify(evento).replace(/'/g, "\\'");
             
             div.innerHTML = `
@@ -884,7 +947,6 @@
 
         // --- Lógica de INGRESSOS (Comprar e Cancelar) ---
         
-        // Função para o botão "Comprar Ingresso" (Preenche o form)
         function preencherFormCompra(eventoId, eventoNome) {
             document.getElementById('form-compra-titulo').textContent = `Comprar Ingresso para: ${eventoNome}`;
             document.getElementById('ingresso-evento-id').value = eventoId;
@@ -903,15 +965,15 @@
                 quantidade: parseInt(document.getElementById('ingresso-quantidade').value)
             };
             
-            // CORREÇÃO: crypto.randomUUID() pode falhar. Usando um método mais simples.
-            const idempotencyKey = Date.now().toString() + Math.random().toString();
+            // CORREÇÃO: Usando a chave correta (x-idempotency-key) e um gerador que funciona
+            const idempotencyKey = gerarIdempotencyKey();
             log(`Gerando Idempotency-Key: ${idempotencyKey}`);
             
             try {
                 const novoIngresso = await apiFetch(`/eventos/${eventoId}/ingressos`, {
                     method: 'POST',
                     headers: {
-                        'Idempotency-Key': idempotencyKey
+                        'x-idempotency-key': idempotencyKey // <--- MUDANÇA IMPORTANTE AQUI
                     },
                     body: JSON.stringify(body),
                 });
@@ -941,7 +1003,6 @@
                 }
                 
                 ingressos.forEach(ingresso => {
-                    // NOVO: Usa a função criarCardIngresso
                     container.appendChild(criarCardIngresso(ingresso));
                 });
              } catch (error) {
@@ -954,7 +1015,6 @@
              }
         }
         
-        // NOVO: Criar Card de Ingresso (com botão Cancelar)
         function criarCardIngresso(ingresso) {
              const div = document.createElement('div');
              div.className = 'card';
@@ -966,22 +1026,21 @@
                 <p><strong>Preço Total:</strong> R$ ${ingresso.precoTotal.toFixed(2)}</p>
                 <div class="card-acoes">
                     <button class="delete" onclick="cancelarIngresso(${ingresso.id}, ${ingresso.eventoId})">Cancelar Ingresso</button>
-                    </div>
+                </div>
             `;
             return div;
         }
         
-        // NOVO: Cancelar Ingresso (PUT /ingressos/{id}/status?status=CANCELADO)
+        // PUT /ingressos/{id}/status?status=CANCELADO
         async function cancelarIngresso(ingressoId, eventoId) {
             if (!confirm(`Tem certeza que deseja cancelar o ingresso ID ${ingressoId}?`)) {
                 return;
             }
             try {
-                // Sua API aceita ?status=CANCELADO
                 await apiFetch(`/ingressos/${ingressoId}/status?status=CANCELADO`, { method: 'PUT' });
                 log(`Ingresso ID ${ingressoId} cancelado com sucesso.`);
-                listarIngressos(eventoId); // Atualiza a lista de ingressos
-                listarEventos(); // Atualiza a lista de eventos (status pode mudar)
+                listarIngressos(eventoId); 
+                listarEventos(); 
             } catch (error) {
                 log(`Erro ao cancelar ingresso ID ${ingressoId}: ${error.message}`, true);
             }
@@ -990,7 +1049,6 @@
         // --- Inicialização ---
         document.addEventListener('DOMContentLoaded', () => {
             log("Bem-vindo! Crie um usuário e gere uma API key para começar.");
-            // Não listamos usuários aqui por padrão, pois pode falhar se a key não estiver salva
             listarArtistas();
             listarEventos();
         });

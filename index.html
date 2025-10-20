@@ -257,7 +257,9 @@
 
     <script>
         // --- Configuração Global ---
-        const API_BASE_URL = "http://localhost:8080/api/v1";
+        // AQUI ESTÁ A MUDANÇA:
+        const API_BASE_URL = "https://api-festival.onrender.com/api/v1"; // <-- MUDE AQUI!
+        
         let API_KEY = localStorage.getItem('apiKey') || 'SUA_API_KEY_AQUI';
         document.getElementById('apiKey').value = API_KEY;
 
@@ -518,6 +520,11 @@
             const div = document.createElement('div');
             div.className = 'card';
             
+            // O objeto 'evento' que vem da API não tem 'dataEvento', mas sim 'dataEvento'
+            // A API Representation que você me mandou não tem 'ingressosVendidos' ou 'capacidade'
+            // Vou usar os campos que eu *sei* que existem pelo seu `EventoRepresentation.java` (que não foi fornecido, mas posso inferir)
+            
+            // Vamos assumir que 'evento' tem os campos corretos
             const dataFormatada = new Date(evento.dataEvento).toLocaleString('pt-BR');
             
             div.innerHTML = `
@@ -526,12 +533,14 @@
                 <p><strong>Local:</strong> ${evento.local}</p>
                 <p><strong>Data:</strong> ${dataFormatada}</p>
                 <p><strong>Status:</strong> ${evento.status}</p>
-                <p><strong>Capacidade:</strong> ${evento.capacidade} (Vendidos: ${evento.ingressosVendidos})</p>
-                <p><strong>Preço:</strong> R$ ${evento.precoIngresso.toFixed(2)}</p>
+                
+                <p><strong>Capacidade:</strong> ${evento.capacidade || 'N/A'}</p> 
+                <p><strong>Preço:</strong> R$ ${evento.precoIngresso ? evento.precoIngresso.toFixed(2) : 'N/A'}</p>
+                
                 <div class="card-acoes">
                     <button onclick="listarIngressos(${evento.id})">Ver Ingressos</button>
                     <button class="delete" onclick="deletarEvento(${evento.id})">Excluir</button>
-                    </div>
+                </div>
             `;
             return div;
         }

@@ -1,1121 +1,547 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Festival API - Dashboard</title>
+    <title>Painel de Eventos</title>
     <style>
-        /* =================================================================
-           NOVO TEMA: LARANJA, PRETO E BRANCO
-           CSS 100% original, sem base no projeto anterior.
-           ================================================================= */
         :root {
-            --bg-dark: #121212;
-            --bg-card: #1E1E1E;
-            --bg-modal: #242424;
-            --text-light: #f5f5f5;
-            --text-muted: #888888;
-            --accent-orange: #F97316;
-            --accent-orange-dark: #EA580C;
-            --border-color: #333333;
-            --error-red: #ef4444;
-            --success-green: #10b981;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+            --cor-fundo: #1a1a1a;
+            --cor-texto: #ffffff;
+            --cor-laranja: #ff6600;
+            --cor-laranja-hover: #e65c00;
+            --cor-borda: #333;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-light);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--cor-fundo);
+            color: var(--cor-texto);
+            margin: 0;
+            padding: 0;
             line-height: 1.6;
         }
 
         .container {
             max-width: 1200px;
-            margin: 0 auto;
-            padding: 1.5rem;
+            margin: 20px auto;
+            padding: 0 20px;
         }
 
-        /* --- Header --- */
-        .header {
+        header {
+            background-color: #000;
+            padding: 20px;
+            border-bottom: 3px solid var(--cor-laranja);
             text-align: center;
-            padding: 2rem 1rem;
-            border-bottom: 3px solid var(--accent-orange);
-        }
-        .header h1 {
-            color: var(--text-light);
-            font-size: 2.5rem;
-            font-weight: 700;
-        }
-        .header h1 span {
-            color: var(--accent-orange);
-        }
-        .header p {
-            color: var(--text-muted);
-            font-size: 1rem;
         }
 
-        /* --- Barra da API Key --- */
-        .api-bar {
-            background: var(--bg-card);
-            padding: 1rem;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-        .api-bar label {
-            font-weight: 600;
-            color: var(--accent-orange);
-        }
-        .api-bar input {
-            background: var(--bg-dark);
-            border: 1px solid var(--border-color);
-            color: var(--text-light);
-            padding: 0.5rem 0.75rem;
-            border-radius: 6px;
-            min-width: 350px;
-            font-size: 0.9rem;
-        }
-        .api-bar input:focus {
-            outline: none;
-            border-color: var(--accent-orange);
-            box-shadow: 0 0 0 2px var(--accent-orange-dark);
+        header h1 {
+            color: var(--cor-laranja);
+            margin: 0;
         }
 
-        /* --- Navegação --- */
-        .nav {
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-            padding: 1.5rem;
-            background: var(--bg-dark);
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        /* --- Botões --- */
-        .btn {
-            padding: 0.6rem 1.25rem;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
-            text-decoration: none;
-            transition: all 0.2s ease-in-out;
-            border: 2px solid var(--accent-orange);
-            background: transparent;
-            color: var(--accent-orange);
-        }
-        .btn:hover {
-            background: var(--accent-orange);
-            color: var(--text-light);
-            transform: translateY(-2px);
-        }
-        .btn.nav-btn.active {
-            background: var(--accent-orange);
-            color: var(--text-light);
-        }
-        .btn-primary {
-            background: var(--accent-orange);
-            color: var(--text-light);
-        }
-        .btn-primary:hover {
-            background: var(--accent-orange-dark);
-            border-color: var(--accent-orange-dark);
-        }
-        .btn-secondary {
-            border-color: var(--text-muted);
-            color: var(--text-muted);
-        }
-        .btn-secondary:hover {
-            background: var(--text-muted);
-            color: var(--bg-dark);
-        }
-        .btn-danger {
-            border-color: var(--error-red);
-            color: var(--error-red);
-        }
-        .btn-danger:hover {
-            background: var(--error-red);
-            color: var(--text-light);
-        }
-
-        /* --- Barra de Busca --- */
-        .search-bar {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-        }
-        .search-input {
-            flex: 1;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            color: var(--text-light);
-            padding: 0.75rem 1rem;
-            border-radius: 6px;
-            font-size: 1rem;
-        }
-        .search-input:focus {
-            outline: none;
-            border-color: var(--accent-orange);
-        }
-
-        /* --- Grid & Cards --- */
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1.5rem;
-        }
-        .card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
+        .api-key-section {
+            background-color: #222;
+            padding: 15px;
             border-radius: 8px;
-            overflow: hidden;
-            transition: all 0.2s ease-in-out;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-        .card:hover {
-            transform: translateY(-4px);
-            border-color: var(--accent-orange);
-        }
-        .card-header {
-            padding: 1.25rem 1.5rem 0.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-        }
-        .card-header h3 {
-            color: var(--accent-orange);
-            font-size: 1.4rem;
-            margin-bottom: 0.25rem;
-        }
-        .card-status {
-            background: var(--border-color);
-            color: var(--text-light);
-            font-size: 0.75rem;
-            font-weight: 600;
-            padding: 0.25rem 0.6rem;
-            border-radius: 20px;
-            white-space: nowrap;
-        }
-        .card-status.status-pago { background: var(--success-green); }
-        .card-status.status-esgotado { background: var(--error-red); }
-        .card-status.status-disponivel { background: var(--accent-orange); }
-
-        .card-body {
-            padding: 0 1.5rem 1rem;
-            color: var(--text-muted);
-        }
-        .card-body p {
-            font-size: 0.9rem;
-            margin-bottom: 0.5rem;
-        }
-        .card-body strong {
-            color: var(--text-light);
-        }
-        .card-footer {
-            padding: 1rem 1.5rem;
-            background: var(--bg-dark);
-            border-top: 1px solid var(--border-color);
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
+            margin-bottom: 20px;
         }
 
-        /* --- Modal --- */
-        .modal-backdrop {
-            display: none;
-            position: fixed;
-            inset: 0; /* top/left/right/bottom = 0 */
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            padding: 1rem;
-            backdrop-filter: blur(5px);
+        .api-key-section label {
+            font-weight: bold;
+            margin-right: 10px;
         }
-        .modal-backdrop.active {
-            display: flex;
-        }
-        .modal-content {
-            background: var(--bg-modal);
-            border-radius: 8px;
-            max-width: 600px;
+
+        input[type="text"],
+        input[type="number"],
+        input[type="datetime-local"],
+        textarea {
             width: 100%;
-            max-height: 90vh;
-            overflow-y: auto;
-            border-top: 4px solid var(--accent-orange);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            margin: 5px 0 15px 0;
+            background-color: #fff;
+            color: #000;
+            border: 1px solid var(--cor-borda);
+            border-radius: 4px;
+            box-sizing: border-box; /* Garante que o padding não afete a largura */
         }
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .modal-title {
-            font-size: 1.75rem;
-            color: var(--accent-orange);
-        }
-        .close-btn {
-            background: none;
+
+        button {
+            background-color: var(--cor-laranja);
+            color: #000;
+            font-weight: bold;
+            padding: 12px 20px;
             border: none;
-            color: var(--text-muted);
-            font-size: 2rem;
+            border-radius: 4px;
             cursor: pointer;
-            line-height: 1;
-        }
-        .close-btn:hover {
-            color: var(--text-light);
-        }
-        .modal-body {
-            padding: 1.5rem;
-        }
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-        .form-label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: var(--text-light);
-            font-weight: 600;
-        }
-        .form-input, .select-input {
-            width: 100%;
-            padding: 0.75rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            color: var(--text-light);
-            border-radius: 6px;
-            font-size: 1rem;
-        }
-        .form-input:focus, .select-input:focus {
-            outline: none;
-            border-color: var(--accent-orange);
-        }
-        textarea.form-input {
-            min-height: 100px;
-            resize: vertical;
-        }
-        .modal-footer {
-            padding: 1.5rem;
-            border-top: 1px solid var(--border-color);
-            display: flex;
-            justify-content: flex-end;
-            gap: 1rem;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
         }
 
-        /* --- Loading Spinner --- */
-        .loading-spinner {
-            display: none; /* Oculto por padrão */
-            justify-content: center;
-            align-items: center;
-            padding: 4rem;
-        }
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid var(--border-color);
-            border-top-color: var(--accent-orange);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        button:hover {
+            background-color: var(--cor-laranja-hover);
         }
 
-        /* --- Mensagens de Alerta --- */
-        #message-container {
-            position: fixed;
-            top: 1rem;
-            right: 1rem;
-            z-index: 2000;
-            width: 300px;
-        }
-        .message {
-            padding: 1rem;
-            border-radius: 6px;
-            color: var(--text-light);
-            margin-bottom: 1rem;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            animation: slideIn 0.3s ease-out;
-        }
-        .message.success-message { background: var(--success-green); }
-        .message.error-message { background: var(--error-red); }
-        
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateX(100%); }
-            to { opacity: 1; transform: translateX(0); }
+        .coluna {
+            width: 48%;
+            float: left;
+            padding: 10px;
+            box-sizing: border-box;
         }
 
-        /* --- Detalhes (Modal) --- */
-        .detail-view { padding: 0.5rem; }
-        .detail-section { margin-bottom: 1.25rem; }
-        .detail-label {
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--accent-orange);
-            text-transform: uppercase;
-            margin-bottom: 0.25rem;
-        }
-        .detail-value {
-            font-size: 1rem;
-            color: var(--text-light);
-            line-height: 1.6;
-        }
-
-        /* --- Estado Vazio --- */
-        .empty-state {
-            text-align: center;
-            padding: 3rem;
-            color: var(--text-muted);
-            background: var(--bg-card);
-            border-radius: 8px;
-            border: 1px dashed var(--border-color);
-        }
-
-        /* --- Responsividade --- */
         @media (max-width: 768px) {
-            .header h1 { font-size: 2rem; }
-            .api-bar { flex-direction: column; align-items: stretch; }
-            .api-bar input { min-width: auto; }
-            .search-bar { flex-direction: column; }
-            .grid { grid-template-columns: 1fr; }
+            .coluna {
+                width: 100%;
+                float: none;
+            }
         }
+
+        .card {
+            background-color: #2a2a2a;
+            border: 1px solid var(--cor-borda);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .card h3 {
+            color: var(--cor-laranja);
+            margin-top: 0;
+        }
+
+        .card p {
+            margin: 5px 0;
+        }
+
+        .card-acoes {
+            margin-top: 15px;
+        }
+
+        .card-acoes button {
+            background-color: #444;
+            color: var(--cor-texto);
+            padding: 8px 12px;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+
+        .card-acoes button.delete {
+            background-color: #a00;
+        }
+         .card-acoes button.delete:hover {
+            background-color: #c00;
+        }
+
+        form {
+            background-color: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        h2 {
+            border-bottom: 2px solid var(--cor-laranja);
+            padding-bottom: 5px;
+        }
+
+        #log-console {
+            background-color: #000;
+            border: 1px solid var(--cor-borda);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            height: 200px;
+            overflow-y: scroll;
+            font-family: monospace;
+            font-size: 14px;
+            color: #0f0;
+        }
+         #log-console .error {
+            color: #f00;
+        }
+        
+        .clearfix::after {
+            content: "";
+            clear: both;
+            display: table;
+        }
+
     </style>
 </head>
 <body>
-    
-    <div id="message-container"></div>
 
-    <header class="header">
-        <h1>API de Festival <span>//</span></h1>
-        <p>Dashboard de Gerenciamento da API Quarkus</p>
+    <header>
+        <h1>Painel de Gerenciamento de Eventos</h1>
     </header>
 
-    <section class="api-bar">
-        <label for="apiKeyInput">Sua Chave de API:</label>
-        <input type="password" id="apiKeyInput" placeholder="Insira sua API Key..." value="demo_key_123456">
-        <button class="btn" onclick="saveApiKey()">Salvar & Carregar</button>
-    </section>
+    <div class="container">
 
-    <nav class="nav">
-        <button class="btn nav-btn active" onclick="changeSection('eventos')">Eventos</button>
-        <button class="btn nav-btn" onclick="changeSection('artistas')">Artistas</button>
-        <button class="btn nav-btn" onclick="changeSection('ingressos')">Ingressos</button>
-    </nav>
+        <div class="api-key-section">
+            <label for="apiKey">API Key:</label>
+            <input type="text" id="apiKey" value="SUA_API_KEY_AQUI" style="width: 70%;">
+            <button onclick="salvarApiKey()">Salvar Key</button>
+        </div>
 
-    <main class="container">
-        <section class="search-bar">
-            <input type="text" id="searchInput" class="search-input" placeholder="Buscar por nome, email, etc...">
-            <button class="btn" onclick="searchData()">🔍 Buscar</button>
-            <button class="btn btn-primary" onclick="openCreateModal()">➕ Criar Novo</button>
+        <div class="clearfix">
+            <div class="coluna">
+                <section id="artistas-section">
+                    <h2>Artistas</h2>
+                    <form id="form-criar-artista">
+                        <h3>Criar Novo Artista</h3>
+                        <label for="artista-nome">Nome:</label>
+                        <input type="text" id="artista-nome" required>
+                        
+                        <label for="artista-genero">Gênero Musical:</label>
+                        <input type="text" id="artista-genero">
+
+                        <label for="artista-bio">Biografia:</label>
+                        <textarea id="artista-bio" rows="3"></textarea>
+
+                        <button type="submit">Criar Artista</button>
+                    </form>
+
+                    <h3 style="margin-top: 20px;">Lista de Artistas</h3>
+                    <button onclick="listarArtistas()">Atualizar Lista de Artistas</button>
+                    <div id="lista-artistas" style="margin-top: 15px;">
+                        </div>
+                </section>
+            </div>
+
+            <div class="coluna">
+                <section id="eventos-section">
+                    <h2>Eventos</h2>
+                    <form id="form-criar-evento">
+                        <h3>Criar Novo Evento</h3>
+                        <label for="evento-nome">Nome:</label>
+                        <input type="text" id="evento-nome" required>
+                        
+                        <label for="evento-local">Local:</label>
+                        <input type="text" id="evento-local" required>
+                        
+                        <label for="evento-data">Data:</label>
+                        <input type="datetime-local" id="evento-data" required>
+
+                        <label for="evento-capacidade">Capacidade:</label>
+                        <input type="number" id="evento-capacidade" required>
+                        
+                        <label for="evento-preco">Preço Ingresso (R$):</label>
+                        <input type="number" id="evento-preco" step="0.01" required>
+
+                        <button type="submit">Criar Evento</button>
+                    </form>
+
+                    <h3 style="margin-top: 20px;">Lista de Eventos</h3>
+                    <button onclick="listarEventos()">Atualizar Lista de Eventos</button>
+                    <div id="lista-eventos" style="margin-top: 15px;">
+                        </div>
+                </section>
+            </div>
+        </div>
+        
+        <section id="ingressos-section" style="margin-top: 20px;" class="clearfix">
+             <h2>Ingressos</h2>
+             <p>Use os botões "Ver Ingressos" nos cards de evento para listar os ingressos.</p>
+             <div id="lista-ingressos">
+                 </div>
         </section>
 
-        <div id="loading-spinner" class="loading-spinner">
-            <div class="spinner"></div>
-        </div>
-        <div id="content-grid" class="grid">
-            </div>
-    </main>
 
-    <div id="modal-backdrop" class="modal-backdrop" onclick="closeModalOnBackdrop(event)">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="modal-title" class="modal-title">Modal</h2>
-                <button class="close-btn" onclick="closeModal()">×</button>
+        <section id="log-section">
+            <h2>Log de Requisições</h2>
+            <div id="log-console">
+                <p>Pronto para iniciar...</p>
             </div>
-            <div id="modal-body" class="modal-body">
-                </div>
-        </div>
+        </section>
+
     </div>
 
     <script>
-        // =================================================================
-        //                 JAVASCRIPT (LÓGICA DA API QUARKUS)
-        // =l================================================================
-        // Este JS é o mesmo da solução anterior,
-        // apenas ajustado para os novos IDs e Classes do CSS.
-        
-        const API_BASE = 'http://localhost:8080/api/v1';
-        let API_KEY = 'demo_key_123456'; // Padrão com a chave de teste
+        // --- Configuração Global ---
+        const API_BASE_URL = "http://localhost:8080/api/v1";
+        let API_KEY = localStorage.getItem('apiKey') || 'SUA_API_KEY_AQUI';
+        document.getElementById('apiKey').value = API_KEY;
 
-        let state = {
-            currentSection: 'eventos',
-            currentSearch: '',
-        };
+        const logConsole = document.getElementById('log-console');
 
-        function saveApiKey() {
-            const newKey = document.getElementById('apiKeyInput').value;
-            if (newKey) {
-                API_KEY = newKey;
-                showMessage('API Key salva! Carregando dados...', 'success');
-                loadData();
-            } else {
-                showMessage('API Key não pode estar vazia.', 'error');
-            }
+        // --- Funções Auxiliares ---
+
+        function salvarApiKey() {
+            API_KEY = document.getElementById('apiKey').value;
+            localStorage.setItem('apiKey', API_KEY);
+            log(`API Key salva.`);
         }
-        
-        async function fetchWithAuth(url, options = {}) {
-            if (!API_KEY) {
-                showMessage('Erro: API Key não configurada.', 'error');
-                throw new Error('API Key não configurada.');
-            }
 
-            if (!options.headers) {
-                options.headers = {};
+        function log(message, isError = false) {
+            const p = document.createElement('p');
+            p.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            if (isError) {
+                p.className = 'error';
             }
+            logConsole.appendChild(p);
+            logConsole.scrollTop = logConsole.scrollHeight;
+        }
 
-            options.headers['X-API-Key'] = API_KEY;
-            if (options.body) {
-                options.headers['Content-Type'] = 'application/json';
-            }
+        /**
+         * Wrapper genérico para a função fetch
+         * @param {string} endpoint O caminho do endpoint (ex: /eventos)
+         * @param {object} options As opções do fetch (method, body, etc)
+         */
+        async function apiFetch(endpoint, options = {}) {
+            const url = `${API_BASE_URL}${endpoint}`;
+            const headers = {
+                'Content-Type': 'application/json',
+                'X-API-Key': API_KEY,
+                ...options.headers,
+            };
+
+            const config = {
+                ...options,
+                headers: headers,
+            };
+            
+            log(`REQUEST: ${config.method || 'GET'} ${url}`);
 
             try {
-                const response = await fetch(url, options);
-                
-                if (response.status === 401 || response.status === 403) {
-                    showMessage('Erro de Autenticação (401/403). Verifique sua API Key.', 'error');
-                    throw new Error('Não autorizado');
+                const response = await fetch(url, config);
+
+                if (!response.ok) {
+                    const errorBody = await response.json();
+                    let errorMsg = `HTTP ${response.status} - ${response.statusText}`;
+                    if (errorBody && errorBody.message) {
+                        errorMsg += `: ${errorBody.message}`;
+                    }
+                    throw new Error(errorMsg);
                 }
                 
-                return response;
+                // Endpoints 204 (No Content) não têm corpo
+                if (response.status === 204) {
+                    log(`SUCCESS: ${config.method || 'GET'} ${url} (204 No Content)`);
+                    return null;
+                }
+
+                const data = await response.json();
+                log(`SUCCESS: ${config.method || 'GET'} ${url}`);
+                return data;
 
             } catch (error) {
-                if (error.message === 'Failed to fetch') {
-                    showMessage('Erro de Rede. A API Quarkus está offline?', 'error');
-                }
+                log(`ERRO: ${error.message}`, true);
                 throw error;
             }
         }
 
-        function changeSection(section) {
-            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            
-            state.currentSection = section;
-            state.currentSearch = '';
-            document.getElementById('searchInput').value = '';
-            
-            loadData();
-        }
+        // --- Lógica de ARTISTAS ---
 
-        function searchData() {
-            state.currentSearch = document.getElementById('searchInput').value;
-            loadData();
-        }
+        // POST /artistas
+        document.getElementById('form-criar-artista').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const nome = document.getElementById('artista-nome').value;
+            const generoMusical = document.getElementById('artista-genero').value;
+            const biografia = document.getElementById('artista-bio').value;
 
-        function clearSearch() {
-            state.currentSearch = '';
-            document.getElementById('searchInput').value = '';
-            loadData();
-        }
-
-        async function loadData() {
-            showLoading(true);
-            
-            let url = '';
-            
-            if (state.currentSearch) {
-                const searchEndpoints = {
-                    eventos: `/eventos/busca/nome/${encodeURIComponent(state.currentSearch)}`,
-                    artistas: `/artistas/busca/nome/${encodeURIComponent(state.currentSearch)}`,
-                    ingressos: `/ingressos/busca/email/${encodeURIComponent(state.currentSearch)}`
-                };
-                url = `${API_BASE}${searchEndpoints[state.currentSection]}`;
-            } else {
-                const endpoints = {
-                    eventos: '/eventos',
-                    artistas: '/artistas',
-                    ingressos: '/ingressos'
-                };
-                url = `${API_BASE}${endpoints[state.currentSection]}`;
-            }
-
-            const contentGrid = document.getElementById('content-grid');
-            contentGrid.innerHTML = ''; // Limpa o grid antes de carregar
-
-            try {
-                const response = await fetchWithAuth(url);
-                if (!response.ok) throw new Error(`Erro ${response.status} na requisição`);
-                
-                const data = await response.json();
-                displayData(data);
-                
-            } catch (error) {
-                if (error.message !== 'Não autorizado') {
-                    showMessage('Erro ao carregar dados: ' + error.message, 'error');
-                }
-                contentGrid.innerHTML = '<div class="empty-state"><h3>Erro ao carregar dados</h3><p>Verifique sua API Key e se a API está no ar.</p></div>';
-            } finally {
-                showLoading(false);
-            }
-        }
-
-        function displayData(items) {
-            const contentGrid = document.getElementById('content-grid');
-            contentGrid.innerHTML = ''; // Limpa de novo por segurança
-
-            if (!items || items.length === 0) {
-                contentGrid.innerHTML = '<div class="empty-state"><h3>Nenhum resultado encontrado</h3><p>Tente ajustar sua busca ou crie um novo item.</p></div>';
-                return;
-            }
-
-            items.forEach(item => {
-                const card = createCard(item, state.currentSection);
-                contentGrid.appendChild(card);
-            });
-        }
-
-        // =================================================================
-        //           FUNÇÃO createCard (ADAPTADA PARA NOVO CSS)
-        // =================================================================
-        function createCard(item, type) {
-            const card = document.createElement('div');
-            card.className = 'card';
-
-            if (type === 'eventos') {
-                const dataFormatada = item.dataEvento ? new Date(item.dataEvento).toLocaleDateString('pt-BR') : 'Data não definida';
-                let statusClass = item.status ? `status-${item.status.toLowerCase()}` : '';
-
-                card.innerHTML = `
-                    <div class="card-header">
-                        <h3>${escapeHtml(item.nome)}</h3>
-                        ${item.status ? `<span class="card-status ${statusClass}">${escapeHtml(item.status)}</span>` : ''}
-                    </div>
-                    <div class="card-body">
-                        <p><strong>Data:</strong> ${dataFormatada}</p>
-                        <p><strong>Local:</strong> ${escapeHtml(item.local || 'N/A')}</p>
-                        <p><strong>Preço:</strong> R$ ${item.precoIngresso ? item.precoIngresso.toFixed(2) : '0.00'}</p>
-                    </div>
-                    <div class="card-footer">
-                        <button class="btn" onclick="viewDetails(${item.id}, 'eventos')">👁 Ver</button>
-                        <button class="btn btn-secondary" onclick="editItem(${item.id}, 'eventos')">✏ Editar</button>
-                    </div>
-                `;
-            } else if (type === 'artistas') {
-                card.innerHTML = `
-                    <div class="card-header">
-                        <h3>${escapeHtml(item.nome)}</h3>
-                        ${item.generoMusical ? `<span class="card-status">${escapeHtml(item.generoMusical)}</span>` : ''}
-                    </div>
-                    <div class="card-body">
-                        <p>${escapeHtml(item.biografia || 'Sem biografia')}</p>
-                    </div>
-                    <div class="card-footer">
-                        <button class="btn" onclick="viewDetails(${item.id}, 'artistas')">👁 Ver</button>
-                        <button class="btn btn-secondary" onclick="editItem(${item.id}, 'artistas')">✏ Editar</button>
-                    </div>
-                `;
-            } else if (type === 'ingressos') {
-                let statusClass = item.status ? `status-${item.status.toLowerCase()}` : '';
-                card.innerHTML = `
-                    <div class="card-header">
-                        <h3>Ingresso #${item.id}</h3>
-                        ${item.status ? `<span class="card-status ${statusClass}">${escapeHtml(item.status)}</span>` : ''}
-                    </div>
-                    <div class="card-body">
-                         <p><strong>Comprador:</strong> ${escapeHtml(item.nomeComprador)}</p>
-                         <p><strong>Email:</strong> ${escapeHtml(item.emailComprador)}</p>
-                         <p><strong>Qtd:</strong> ${item.quantidade} / <strong>Total:</strong> R$ ${item.precoTotal ? item.precoTotal.toFixed(2) : '0.00'}</p>
-                    </div>
-                    <div class="card-footer">
-                        <button class="btn" onclick="viewDetails(${item.id}, 'ingressos')">👁 Ver</button>
-                        <button class="btn btn-secondary" onclick="editItem(${item.id}, 'ingressos')">✏ Editar</button>
-                    </div>
-                `;
-            }
-
-            return card;
-        }
-
-        async function viewDetails(id, type) {
-            const endpoints = {
-                eventos: '/eventos',
-                artistas: '/artistas',
-                ingressos: '/ingressos'
+            const body = {
+                nome,
+                generoMusical,
+                biografia
             };
 
             try {
-                const response = await fetchWithAuth(`${API_BASE}${endpoints[type]}/${id}`);
-                if (!response.ok) throw new Error('Erro ao carregar detalhes');
-                const item = await response.json();
-                
-                document.getElementById('modal-title').textContent = item.nome || `Ingresso #${item.id}`;
-                document.getElementById('modal-body').innerHTML = createDetailView(item, type);
-                document.getElementById('modal-backdrop').classList.add('active');
-            } catch (error) {
-                showMessage('Erro ao carregar detalhes: ' + error.message, 'error');
-            }
-        }
-
-        // =================================================================
-        //           VISUALIZAÇÃO DE DETALHES (ADAPTADA PARA NOVO CSS)
-        // =================================================================
-        function createDetailView(item, type) {
-            let html = '<div class="detail-view">';
-
-            if (type === 'eventos') {
-                const dataFormatada = item.dataEvento ? new Date(item.dataEvento).toLocaleDateString('pt-BR') : 'N/A';
-                html += `
-                    <div class="detail-section">
-                        <div class="detail-label">Nome</div>
-                        <div class="detail-value">${escapeHtml(item.nome)}</div>
-                    </div>
-                    <div class="detail-section">
-                        <div class="detail-label">Data</div>
-                        <div class="detail-value">${dataFormatada}</div>
-                    </div>
-                    <div class="detail-section">
-                        <div class="detail-label">Descrição</div>
-                        <div class="detail-value">${escapeHtml(item.descricao || 'Sem descrição')}</div>
-                    </div>
-                    <div class="detail-section">
-                        <div class="detail-label">Local</div>
-                        <div class="detail-value">${escapeHtml(item.local || 'N/A')}</div>
-                    </div>
-                     <div class="detail-section">
-                        <div class="detail-label">Capacidade / Preço</div>
-                        <div class="detail-value">${item.capacidadeMaxima.toLocaleString('pt-BR')} pessoas / R$ ${item.precoIngresso.toFixed(2)}</div>
-                    </div>
-                    <div class="detail-section">
-                        <div class="detail-label">Status</div>
-                        <div class="detail-value">${escapeHtml(item.status)}</div>
-                    </div>
-                    ${item.artistas && item.artistas.length > 0 ? `
-                    <div class="detail-section">
-                        <div class="detail-label">Artistas (${item.artistas.length})</div>
-                        <div class="detail-value">${item.artistas.map(a => escapeHtml(a.nome || `ID: ${a.id}`)).join(', ')}</div>
-                    </div>` : ''}
-                `;
-            } else if (type === 'artistas') {
-                html += `
-                    <div class="detail-section">
-                        <div class="detail-label">Nome</div>
-                        <div class="detail-value">${escapeHtml(item.nome)}</div>
-                    </div>
-                    <div class="detail-section">
-                        <div class="detail-label">Gênero Musical</div>
-                        <div class="detail-value">${escapeHtml(item.generoMusical || 'N/A')}</div>
-                    </div>
-                    <div class="detail-section">
-                        <div class="detail-label">Biografia</div>
-                        <div class="detail-value">${escapeHtml(item.biografia || 'Sem biografia')}</div>
-                    </div>
-                `;
-            } else if (type === 'ingressos') {
-                 const dataCompraFormatada = item.dataCompra ? new Date(item.dataCompra).toLocaleString('pt-BR') : 'N/A';
-                html += `
-                    <div class="detail-section">
-                        <div class="detail-label">Evento</div>
-                        <div class="detail-value">${escapeHtml(item.evento ? item.evento.nome : 'Evento ID: ' + item.eventoId)}</div>
-                    </div>
-                    <div class="detail-section">
-                        <div class="detail-label">Comprador</div>
-                        <div class="detail-value">${escapeHtml(item.nomeComprador)} (${escapeHtml(item.emailComprador)})</div>
-                    </div>
-                    <div class="detail-section">
-                        <div class="detail-label">Data da Compra</div>
-                        <div class="detail-value">${dataCompraFormatada}</div>
-                    </div>
-                    <div class="detail-section">
-                        <div class="detail-label">Status</div>
-                        <div class="detail-value">${escapeHtml(item.status)}</div>
-                    </div>
-                    <div class="detail-section">
-                        <div class="detail-label">Quantidade / Preço Total</div>
-                        <div class="detail-value">${item.quantidade} / R$ ${item.precoTotal.toFixed(2)}</div>
-                    </div>
-                `;
-            }
-
-            html += '</div>';
-            return html;
-        }
-
-        async function editItem(id, type) {
-            const endpoints = {
-                eventos: '/eventos',
-                artistas: '/artistas',
-                ingressos: '/ingressos'
-            };
-
-            try {
-                const response = await fetchWithAuth(`${API_BASE}${endpoints[type]}/${id}`);
-                if (!response.ok) throw new Error('Erro ao carregar item');
-                const item = await response.json();
-                
-                document.getElementById('modal-title').textContent = `Editar ${item.nome || `Ingresso #${item.id}`}`;
-                document.getElementById('modal-body').innerHTML = createEditForm(item, type, id);
-                document.getElementById('modal-backdrop').classList.add('active');
-            } catch (error) {
-                showMessage('Erro ao carregar item: ' + error.message, 'error');
-            }
-        }
-
-        // =================================================================
-        //           FORMULÁRIO DE EDIÇÃO (ADAPTADO PARA NOVO CSS)
-        // =================================================================
-        function createEditForm(item, type, id) {
-            // Os formulários da sua API são os mesmos
-            const artistasIds = item.artistas ? item.artistas.map(a => a.id).join(', ') : '';
-            let formHtml = `<form onsubmit="submitEdit(event, ${id}, '${type}')">`;
-
-            if (type === 'eventos') {
-                formHtml += `
-                    <div class="form-group">
-                        <label class="form-label">Nome:</label>
-                        <input type="text" name="nome" class="form-input" value="${escapeHtml(item.nome || '')}" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Data:</label>
-                        <input type="date" name="dataEvento" class="form-input" value="${escapeHtml(item.dataEvento || '')}">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Descrição:</label>
-                        <textarea name="descricao" class="form-input">${escapeHtml(item.descricao || '')}</textarea>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Local:</label>
-                        <input type="text" name="local" class="form-input" value="${escapeHtml(item.local || '')}">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Capacidade Máxima:</label>
-                        <input type="number" name="capacidadeMaxima" class="form-input" value="${escapeHtml(item.capacidadeMaxima || '0')}">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Preço Ingresso:</label>
-                        <input type="number" step="0.01" name="precoIngresso" class="form-input" value="${escapeHtml(item.precoIngresso || '0.00')}">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">IDs dos Artistas (separados por vírgula):</label>
-                        <input type="text" name="artistas" class="form-input" value="${artistasIds}">
-                    </div>
-                `;
-            } else if (type === 'artistas') {
-                formHtml += `
-                    <div class="form-group">
-                        <label class="form-label">Nome:</label>
-                        <input type="text" name="nome" class="form-input" value="${escapeHtml(item.nome || '')}" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Gênero Musical:</label>
-                        <input type="text" name="generoMusical" class="form-input" value="${escapeHtml(item.generoMusical || '')}">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Biografia:</label>
-                        <textarea name="biografia" class="form-input">${escapeHtml(item.biografia || '')}</textarea>
-                    </div>
-                `;
-            } else if (type === 'ingressos') {
-                formHtml += `
-                    <div class="form-group">
-                        <label class="form-label">Nome Comprador:</label>
-                        <input type="text" name="nomeComprador" class="form-input" value="${escapeHtml(item.nomeComprador || '')}" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Email Comprador:</label>
-                        <input type="email" name="emailComprador" class="form-input" value="${escapeHtml(item.emailComprador || '')}" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Quantidade:</label>
-                        <input type="number" name="quantidade" class="form-input" value="${escapeHtml(item.quantidade || '1')}" required>
-                    </div>
-                     <div class="form-group">
-                        <label class="form-label">Status:</label>
-                        <select name="status" class="select-input" required>
-                            <option value="RESERVADO" ${item.status === 'RESERVADO' ? 'selected' : ''}>RESERVADO</option>
-                            <option value="PAGO" ${item.status === 'PAGO' ? 'selected' : ''}>PAGO</option>
-                            <option value="CANCELADO" ${item.status === 'CANCELADO' ? 'selected' : ''}>CANCELADO</option>
-                            <option value="UTILIZADO" ${item.status === 'UTILIZADO' ? 'selected' : ''}>UTILIZADO</option>
-                        </select>
-                    </div>
-                `;
-            }
-
-            formHtml += `
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">💾 Salvar</button>
-                </div>
-            </form>`;
-
-            return formHtml;
-        }
-
-        async function submitEdit(event, id, type) {
-            event.preventDefault();
-            const form = event.target;
-            const formData = new FormData(form);
-            
-            let data = {};
-            
-            if (type === 'eventos') {
-                const artistasIDs = formData.get('artistas');
-                data = {
-                    nome: formData.get('nome'),
-                    dataEvento: formData.get('dataEvento') || null,
-                    descricao: formData.get('descricao') || null,
-                    local: formData.get('local') || null,
-                    capacidadeMaxima: parseInt(formData.get('capacidadeMaxima') || 0, 10),
-                    precoIngresso: parseFloat(formData.get('precoIngresso') || 0.0),
-                    artistas: artistasIDs ? artistasIDs.split(',').map(id => ({ id: parseInt(id.trim()) })).filter(a => !isNaN(a.id)) : []
-                };
-            } else if (type === 'artistas') {
-                data = {
-                    nome: formData.get('nome'),
-                    generoMusical: formData.get('generoMusical') || null,
-                    biografia: formData.get('biografia') || null
-                };
-            } else if (type === 'ingressos') {
-                data = {
-                    nomeComprador: formData.get('nomeComprador'),
-                    emailComprador: formData.get('emailComprador'),
-                    quantidade: parseInt(formData.get('quantidade') || 1, 10),
-                    status: formData.get('status')
-                };
-            }
-
-            const endpoints = {
-                eventos: '/eventos',
-                artistas: '/artistas',
-                ingressos: '/ingressos'
-            };
-
-            try {
-                const response = await fetchWithAuth(`${API_BASE}${endpoints[type]}/${id}`, {
-                    method: 'PUT',
-                    body: JSON.stringify(data)
-                });
-
-                if (response.ok) {
-                    showMessage('Item atualizado com sucesso!', 'success');
-                    closeModal();
-                    loadData();
-                } else {
-                    const errorText = await response.text();
-                    showMessage(`Erro ao atualizar: ${errorText || response.statusText}`, 'error');
-                }
-            } catch (error) {
-                showMessage('Erro de conexão: ' + error.message, 'error');
-            }
-        }
-
-        function openCreateModal() {
-            const titles = {
-                eventos: 'Criar Novo Evento',
-                artistas: 'Criar Novo Artista',
-                ingressos: 'Comprar Ingresso'
-            };
-
-            document.getElementById('modal-title').textContent = titles[state.currentSection];
-            document.getElementById('modal-body').innerHTML = createCreateForm(state.currentSection);
-            document.getElementById('modal-backdrop').classList.add('active');
-        }
-
-        // =================================================================
-        //           FORMULÁRIO DE CRIAÇÃO (ADAPTADO PARA NOVO CSS)
-        // =================================================================
-        function createCreateForm(type) {
-            let html = `<form onsubmit="submitCreate(event, '${type}')">`;
-
-            if (type === 'eventos') {
-                html += `
-                    <div class="form-group">
-                        <label class="form-label">Nome:</label>
-                        <input type="text" name="nome" class="form-input" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Data:</label>
-                        <input type="date" name="dataEvento" class="form-input">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Descrição:</label>
-                        <textarea name="descricao" class="form-input"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Local:</label>
-                        <input type="text" name="local" class="form-input" placeholder="Ex: Praia de Copacabana">
-                    </div>
-                     <div class="form-group">
-                        <label class="form-label">Capacidade Máxima:</label>
-                        <input type="number" name="capacidadeMaxima" class="form-input" value="50000">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Preço Ingresso:</label>
-                        <input type="number" step="0.01" name="precoIngresso" class="form-input" value="250.00">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">IDs dos Artistas (separados por vírgula):</label>
-                        <input type="text" name="artistas" class="form-input" placeholder="Ex: 1, 2, 3">
-                    </div>
-                `;
-            } else if (type === 'artistas') {
-                html += `
-                    <div class="form-group">
-                        <label class="form-label">Nome:</label>
-                        <input type="text" name="nome" class="form-input" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Gênero Musical:</label>
-                        <input type="text" name="generoMusical" class="form-input" placeholder="Ex: Rock, Pop, Eletrônica">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Biografia:</label>
-                        <textarea name="biografia" class="form-input"></textarea>
-                    </div>
-                `;
-            } else if (type === 'ingressos') {
-                html += `
-                    <div class="form-group">
-                        <label class="form-label">ID do Evento:</label>
-                        <input type="number" name="eventoId" class="form-input" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Nome Comprador:</label>
-                        <input type="text" name="nomeComprador" class="form-input" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Email Comprador:</label>
-                        <input type="email" name="emailComprador" class="form-input" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Quantidade:</label>
-                        <input type="number" name="quantidade" class="form-input" value="1" required>
-                    </div>
-                `;
-            }
-
-            html += `
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">➕ Criar</button>
-                </div>
-            </form>`;
-
-            return html;
-        }
-
-        async function submitCreate(event, type) {
-            event.preventDefault();
-            
-            const form = event.target;
-            const formData = new FormData(form);
-            
-            let data = {};
-            
-            if (type === 'eventos') {
-                const artistasIDs = formData.get('artistas');
-                data = {
-                    nome: formData.get('nome'),
-                    dataEvento: formData.get('dataEvento') || null,
-                    descricao: formData.get('descricao') || null,
-                    local: formData.get('local') || null,
-                    capacidadeMaxima: parseInt(formData.get('capacidadeMaxima') || 0, 10),
-                    precoIngresso: parseFloat(formData.get('precoIngresso') || 0.0),
-                    artistas: artistasIDs ? artistasIDs.split(',').map(id => ({ id: parseInt(id.trim()) })).filter(a => !isNaN(a.id)) : []
-                };
-            } else if (type === 'artistas') {
-                data = {
-                    nome: formData.get('nome'),
-                    generoMusical: formData.get('generoMusical') || null,
-                    biografia: formData.get('biografia') || null
-                };
-            } else if (type === 'ingressos') {
-                data = {
-                    nomeComprador: formData.get('nomeComprador'),
-                    emailComprador: formData.get('emailComprador'),
-                    quantidade: parseInt(formData.get('quantidade') || 1, 10),
-                    eventoId: parseInt(formData.get('eventoId'), 10)
-                };
-            }
-
-            const endpoints = {
-                eventos: '/eventos',
-                artistas: '/artistas',
-                ingressos: '/ingressos'
-            };
-
-            try {
-                const response = await fetchWithAuth(`${API_BASE}${endpoints[type]}`, {
+                const novoArtista = await apiFetch('/artistas', {
                     method: 'POST',
-                    body: JSON.stringify(data)
+                    body: JSON.stringify(body),
                 });
-
-                if (response.ok || response.status === 201) {
-                    showMessage('Item criado com sucesso!', 'success');
-                    closeModal();
-                    loadData();
-                } else {
-                    const errorText = await response.text();
-                    showMessage(`Erro ao criar: ${errorText || response.statusText}`, 'error');
-                }
+                log(`Artista "${novoArtista.nome}" criado com ID: ${novoArtista.id}.`);
+                this.reset(); // Limpa o formulário
+                listarArtistas(); // Atualiza a lista
             } catch (error) {
-                showMessage('Erro de conexão: ' + error.message, 'error');
-            }
-        }
-
-        // =================================================================
-        //           FUNÇÕES UTILITÁRIAS
-        // =================================================================
-
-        function closeModal() {
-            document.getElementById('modal-backdrop').classList.remove('active');
-        }
-
-        function closeModalOnBackdrop(event) {
-            if (event.target.id === 'modal-backdrop') {
-                closeModal();
-            }
-        }
-
-        function showLoading(show) {
-            document.getElementById('loading-spinner').style.display = show ? 'flex' : 'none';
-            document.getElementById('content-grid').style.display = show ? 'none' : 'grid';
-        }
-
-        function showMessage(message, type) {
-            const container = document.getElementById('message-container');
-            const div = document.createElement('div');
-            div.className = `message ${type === 'error' ? 'error-message' : 'success-message'}`;
-            div.textContent = message;
-            
-            container.appendChild(div);
-
-            setTimeout(() => {
-                div.style.transition = 'opacity 0.5s ease';
-                div.style.opacity = '0';
-                setTimeout(() => div.remove(), 500);
-            }, 5000);
-        }
-
-        function escapeHtml(text) {
-            if (typeof text !== 'string') return text;
-            const map = {
-                '&': '&amp;', '<': '&lt;', '>': '&gt;',
-                '"': '&quot;', "'": '&#039;'
-            };
-            return text.replace(/[&<>"']/g, m => map[m]);
-        }
-
-        document.getElementById('searchInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                searchData();
+                log(`Falha ao criar artista: ${error.message}`, true);
             }
         });
 
-        // Carregamento inicial
-        // Atrasar o primeiro carregamento para dar tempo de inserir a chave, se necessário
-        // loadData(); // Descomente se quiser carregar com a chave 'demo'
-        showMessage("Insira sua API Key e clique em 'Salvar & Carregar'", 'success');
+        // GET /artistas
+        async function listarArtistas() {
+            const container = document.getElementById('lista-artistas');
+            container.innerHTML = "<p>Carregando artistas...</p>";
+
+            try {
+                // A API usa paginação, pegamos a primeira página
+                const response = await apiFetch('/artistas?page=0&size=20&sort=nome&direction=asc');
+                const artistas = response.content; // 'content' vem do PageResponse
+                
+                container.innerHTML = ""; // Limpa "Carregando..."
+                if (artistas.length === 0) {
+                    container.innerHTML = "<p>Nenhum artista encontrado.</p>";
+                    return;
+                }
+
+                artistas.forEach(artista => {
+                    container.appendChild(criarCardArtista(artista));
+                });
+
+            } catch (error) {
+                container.innerHTML = `<p class="error">Erro ao carregar artistas: ${error.message}</p>`;
+            }
+        }
+
+        // DELETE /artistas/{id}
+        async function deletarArtista(id) {
+            if (!confirm(`Tem certeza que deseja excluir o artista ID ${id}?`)) {
+                return;
+            }
+            try {
+                await apiFetch(`/artistas/${id}`, { method: 'DELETE' });
+                log(`Artista ID ${id} excluído com sucesso.`);
+                listarArtistas(); // Atualiza a lista
+            } catch (error) {
+                log(`Erro ao excluir artista ID ${id}: ${error.message}`, true);
+            }
+        }
+        
+        function criarCardArtista(artista) {
+            const div = document.createElement('div');
+            div.className = 'card';
+            div.innerHTML = `
+                <h3>${artista.nome}</h3>
+                <p><strong>ID:</strong> ${artista.id}</p>
+                <p><strong>Gênero:</strong> ${artista.generoMusical || 'N/A'}</p>
+                <div class="card-acoes">
+                    <button class="delete" onclick="deletarArtista(${artista.id})">Excluir</button>
+                    </div>
+            `;
+            return div;
+        }
+
+        // --- Lógica de EVENTOS ---
+
+        // POST /eventos
+        document.getElementById('form-criar-evento').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const body = {
+                nome: document.getElementById('evento-nome').value,
+                local: document.getElementById('evento-local').value,
+                dataEvento: document.getElementById('evento-data').value,
+                capacidadeMaxima: parseInt(document.getElementById('evento-capacidade').value),
+                precoIngresso: parseFloat(document.getElementById('evento-preco').value),
+                status: "AGENDADO", // Status padrão
+                artistas: [] // A API de criação de evento parece aceitar lista de artistas
+            };
+            
+            try {
+                const novoEvento = await apiFetch('/eventos', {
+                    method: 'POST',
+                    body: JSON.stringify(body),
+                });
+                log(`Evento "${novoEvento.nome}" criado com ID: ${novoEvento.id}.`);
+                this.reset(); // Limpa o formulário
+                listarEventos(); // Atualiza a lista
+            } catch (error) {
+                log(`Falha ao criar evento: ${error.message}`, true);
+            }
+        });
+
+        // GET /eventos
+        async function listarEventos() {
+            const container = document.getElementById('lista-eventos');
+            container.innerHTML = "<p>Carregando eventos...</p>";
+
+            try {
+                const response = await apiFetch('/eventos?page=0&size=20&sort=dataEvento&direction=asc');
+                const eventos = response.content; // 'content' vem do PageResponse
+                
+                container.innerHTML = ""; // Limpa "Carregando..."
+                if (eventos.length === 0) {
+                    container.innerHTML = "<p>Nenhum evento encontrado.</p>";
+                    return;
+                }
+
+                eventos.forEach(evento => {
+                    container.appendChild(criarCardEvento(evento));
+                });
+
+            } catch (error) {
+                container.innerHTML = `<p class="error">Erro ao carregar eventos: ${error.message}</p>`;
+            }
+        }
+
+        // GET /eventos/{id}/ingressos
+        async function listarIngressos(eventoId) {
+             const container = document.getElementById('lista-ingressos');
+             container.innerHTML = `<p>Carregando ingressos para o evento ID ${eventoId}...</p>`;
+             
+             try {
+                const ingressos = await apiFetch(`/eventos/${eventoId}/ingressos`);
+                container.innerHTML = `<h3>Ingressos do Evento ${eventoId}</h3>`;
+                
+                if (!ingressos || ingressos.length === 0) {
+                    container.innerHTML += "<p>Nenhum ingresso encontrado para este evento.</p>";
+                    return;
+                }
+                
+                ingressos.forEach(ingresso => {
+                    const div = document.createElement('div');
+                    div.className = 'card';
+                    div.innerHTML = `
+                        <h4>Ingresso ID: ${ingresso.id}</h4>
+                        <p><strong>Comprador:</strong> ${ingresso.nomeComprador} (${ingresso.emailComprador})</p>
+                        <p><strong>Qtde:</strong> ${ingresso.quantidade}</p>
+                        <p><strong>Status:</strong> ${ingresso.status}</p>
+                        <p><strong>Preço Total:</strong> R$ ${ingresso.precoTotal.toFixed(2)}</p>
+                    `;
+                    container.appendChild(div);
+                });
+                
+             } catch (error) {
+                 // A API retorna 204 (No Content) se estiver vazio, que o apiFetch trata como 'null'
+                 if (error.message.includes("204")) {
+                     container.innerHTML = `<h3>Ingressos do Evento ${eventoId}</h3>`;
+                     container.innerHTML += "<p>Nenhum ingresso encontrado para este evento.</p>";
+                 } else {
+                     container.innerHTML = `<p class="error">Erro ao carregar ingressos: ${error.message}</p>`;
+                 }
+             }
+        }
+        
+        // DELETE /eventos/{id}
+        async function deletarEvento(id) {
+            if (!confirm(`Tem certeza que deseja excluir o evento ID ${id}?`)) {
+                return;
+            }
+            try {
+                await apiFetch(`/eventos/${id}`, { method: 'DELETE' });
+                log(`Evento ID ${id} excluído com sucesso.`);
+                listarEventos(); // Atualiza a lista
+            } catch (error) {
+                log(`Erro ao excluir evento ID ${id}: ${error.message}`, true);
+            }
+        }
+        
+        function criarCardEvento(evento) {
+            const div = document.createElement('div');
+            div.className = 'card';
+            
+            const dataFormatada = new Date(evento.dataEvento).toLocaleString('pt-BR');
+            
+            div.innerHTML = `
+                <h3>${evento.nome}</h3>
+                <p><strong>ID:</strong> ${evento.id}</p>
+                <p><strong>Local:</strong> ${evento.local}</p>
+                <p><strong>Data:</strong> ${dataFormatada}</p>
+                <p><strong>Status:</strong> ${evento.status}</p>
+                <p><strong>Capacidade:</strong> ${evento.capacidade} (Vendidos: ${evento.ingressosVendidos})</p>
+                <p><strong>Preço:</strong> R$ ${evento.precoIngresso.toFixed(2)}</p>
+                <div class="card-acoes">
+                    <button onclick="listarIngressos(${evento.id})">Ver Ingressos</button>
+                    <button class="delete" onclick="deletarEvento(${evento.id})">Excluir</button>
+                    </div>
+            `;
+            return div;
+        }
+
+        // --- Inicialização ---
+        // Carrega as listas iniciais quando a página é aberta
+        document.addEventListener('DOMContentLoaded', () => {
+            listarArtistas();
+            listarEventos();
+        });
 
     </script>
 </body>

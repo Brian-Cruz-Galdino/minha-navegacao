@@ -11,6 +11,8 @@
             --cor-laranja: #ff6600;
             --cor-laranja-hover: #e65c00;
             --cor-borda: #333;
+            --cor-verde: #008a2c;
+            --cor-vermelho: #a00;
         }
 
         body {
@@ -58,7 +60,7 @@
         input[type="number"],
         input[type="date"],
         textarea,
-        select { /* Adicionado select */
+        select {
             width: 100%;
             padding: 10px;
             margin: 5px 0 15px 0;
@@ -88,6 +90,15 @@
 
         button:hover {
             background-color: var(--cor-laranja-hover);
+        }
+        
+        button.btn-cancelar {
+            background-color: #555;
+            color: var(--cor-texto);
+            margin-left: 10px;
+        }
+        button.btn-cancelar:hover {
+            background-color: #777;
         }
 
         .coluna {
@@ -146,17 +157,18 @@
             padding: 8px 12px;
             font-size: 14px;
             margin-right: 10px;
+            margin-bottom: 5px;
         }
         
         .card-acoes button.buy {
-            background-color: #006b21;
+            background-color: var(--cor-verde);
         }
         .card-acoes button.buy:hover {
-            background-color: #008a2c;
+            background-color: #00a833;
         }
 
         .card-acoes button.delete {
-            background-color: #a00;
+            background-color: var(--cor-vermelho);
         }
          .card-acoes button.delete:hover {
             background-color: #c00;
@@ -218,6 +230,7 @@
         
         <section id="usuarios-keys-section">
             <h2>Usuários e API Keys</h2>
+            <p style="font-size: 14px;">(OBS: A API não suporta editar ou deletar usuários, apenas criar e listar)</p>
             <div class="clearfix">
                 <div class="coluna-3">
                     <form id="form-criar-usuario">
@@ -253,12 +266,23 @@
                         <h4>Nova Chave Gerada:</h4>
                         <p id="nova-key-valor" style="color: var(--cor-laranja); font-weight: bold;"></p>
                     </div>
+                    
+                    <form id="form-listar-keys" style="margin-top: 15px;">
+                        <h3>Listar/Revogar Keys do Usuário</h3>
+                        <label for="list-key-usuario-id">ID do Usuário:</label>
+                        <input type="number" id="list-key-usuario-id" required>
+                        <button type="submit">Listar Chaves</button>
+                    </form>
                 </div>
 
                 <div class="coluna-3">
                     <h3>Lista de Usuários</h3>
                     <button onclick="listarUsuarios()">Atualizar Lista de Usuários</button>
                     <div id="lista-usuarios" style="margin-top: 15px;">
+                        </div>
+                    
+                    <h3 style="margin-top: 15px;">Chaves Ativas do Usuário</h3>
+                    <div id="lista-api-keys" style="margin-top: 15px;">
                         </div>
                 </div>
             </div>
@@ -270,8 +294,9 @@
             <div class="coluna">
                 <section id="artistas-section">
                     <h2>Artistas</h2>
-                    <form id="form-criar-artista">
-                        <h3>Criar Novo Artista</h3>
+                    <form id="form-artista"> <h3 id="form-artista-titulo">Criar Novo Artista</h3>
+                        <input type="hidden" id="artista-id-edit">
+                        
                         <label for="artista-nome">Nome:</label>
                         <input type="text" id="artista-nome" required>
                         
@@ -281,7 +306,8 @@
                         <label for="artista-bio">Biografia:</label>
                         <textarea id="artista-bio" rows="3"></textarea>
 
-                        <button type="submit">Criar Artista</button>
+                        <button type="submit" id="btn-submit-artista">Criar Artista</button>
+                        <button type="button" class="btn-cancelar" id="btn-cancelar-edicao-artista" style="display: none;" onclick="cancelarEdicaoArtista()">Cancelar Edição</button>
                     </form>
 
                     <h3 style="margin-top: 20px;">Lista de Artistas</h3>
@@ -294,8 +320,9 @@
             <div class="coluna">
                 <section id="eventos-section">
                     <h2>Eventos</h2>
-                    <form id="form-criar-evento">
-                        <h3>Criar Novo Evento</h3>
+                    <form id="form-evento"> <h3 id="form-evento-titulo">Criar Novo Evento</h3>
+                        <input type="hidden" id="evento-id-edit">
+                        
                         <label for="evento-nome">Nome:</label>
                         <input type="text" id="evento-nome" required>
                         
@@ -311,7 +338,18 @@
                         <label for="evento-preco">Preço Ingresso (R$):</label>
                         <input type="number" id="evento-preco" step="0.01" required>
 
-                        <button type="submit">Criar Evento</button>
+                        <div id="campo-status-evento" style="display: none;">
+                             <label for="evento-status">Status:</label>
+                             <select id="evento-status">
+                                <option value="DISPONIVEL">DISPONIVEL</option>
+                                <option value="ESGOTADO">ESGOTADO</option>
+                                <option value="CANCELADO">CANCELADO</option>
+                                <option value="ADIADO">ADIADO</option>
+                             </select>
+                        </div>
+
+                        <button type="submit" id="btn-submit-evento">Criar Evento</button>
+                         <button type="button" class="btn-cancelar" id="btn-cancelar-edicao-evento" style="display: none;" onclick="cancelarEdicaoEvento()">Cancelar Edição</button>
                     </form>
 
                     <h3 style="margin-top: 20px;">Lista de Eventos</h3>
@@ -329,7 +367,9 @@
                 <h3 id="form-compra-titulo">Comprar Ingresso</h3>
                 
                 <label for="ingresso-evento-id">ID do Evento:</label>
-                <input type="number" id="ingresso-evento-id" readonly> <label for="ingresso-nome">Seu Nome:</label>
+                <input type="number" id="ingresso-evento-id" readonly> 
+                
+                <label for="ingresso-nome">Seu Nome:</label>
                 <input type="text" id="ingresso-nome" required>
                 
                 <label for="ingresso-email">Seu Email:</label>
@@ -384,19 +424,14 @@
             logConsole.scrollTop = logConsole.scrollHeight;
         }
 
-        // --- FUNÇÃO APIFETCH CORRIGIDA ---
         async function apiFetch(endpoint, options = {}) {
             const url = `${API_BASE_URL}${endpoint}`;
-            
-            // CORREÇÃO: A lógica 'isPublic' estava errada.
-            // Apenas 'POST /usuarios' é público, 'GET /usuarios' é protegido.
             const method = options.method || 'GET';
             let isPublic = false;
             
             if (endpoint === '/usuarios' && method === 'POST') isPublic = true;
             if (endpoint.startsWith('/apikeys/generate')) isPublic = true;
             if (endpoint.startsWith('/auth/login')) isPublic = true;
-            // Adicione outras rotas públicas se necessário
             
             const headers = {
                 'Content-Type': 'application/json',
@@ -455,7 +490,7 @@
                 nome: document.getElementById('usuario-nome').value,
                 email: document.getElementById('usuario-email').value,
                 senha: document.getElementById('usuario-senha').value,
-                tipo: document.getElementById('usuario-tipo').value // NOVO: envia o tipo
+                tipo: document.getElementById('usuario-tipo').value 
             };
 
             try {
@@ -496,12 +531,11 @@
             }
         });
 
-        // GET /usuarios (Agora deve funcionar)
+        // GET /usuarios
         async function listarUsuarios() {
             const container = document.getElementById('lista-usuarios');
             container.innerHTML = "<p>Carregando usuários...</p>";
             try {
-                // A função apiFetch agora enviará a API Key, e esta rota funcionará.
                 const usuarios = await apiFetch('/usuarios'); 
                 container.innerHTML = ""; 
                 if (usuarios.length === 0) {
@@ -527,27 +561,102 @@
             return div;
         }
 
-        // --- Lógica de ARTISTAS ---
+        // NOVO: Listar API Keys (GET /apikeys/usuario/{id})
+        document.getElementById('form-listar-keys').addEventListener('submit', async function(e) {
+             e.preventDefault();
+             const usuarioId = document.getElementById('list-key-usuario-id').value;
+             listarApiKeys(usuarioId);
+        });
 
-        // POST /artistas
-        document.getElementById('form-criar-artista').addEventListener('submit', async function(e) {
+        async function listarApiKeys(usuarioId) {
+            const container = document.getElementById('lista-api-keys');
+            container.innerHTML = `<p>Listando chaves para usuário ${usuarioId}...</p>`;
+            try {
+                const keys = await apiFetch(`/apikeys/usuario/${usuarioId}`);
+                container.innerHTML = "";
+                if (keys.length === 0) {
+                    container.innerHTML = "<p>Nenhuma chave ativa encontrada.</p>";
+                    return;
+                }
+                keys.forEach(key => {
+                    container.appendChild(criarCardApiKey(key));
+                });
+            } catch (error) {
+                 container.innerHTML = `<p class="error">Erro ao carregar chaves: ${error.message}</p>`;
+            }
+        }
+        
+        // NOVO: Criar Card API Key
+        function criarCardApiKey(key) {
+            const div = document.createElement('div');
+            div.className = 'card';
+            div.innerHTML = `
+                <p><strong>ID: ${key.id}</strong></p>
+                <p>Chave: ${key.chave.substring(0, 10)}...</p>
+                <p>Expira em: ${new Date(key.dataExpiracao).toLocaleDateString()}</p>
+                <div class="card-acoes">
+                    <button class="delete" onclick="revogarApiKey(${key.id})">Revogar</button>
+                </div>
+            `;
+            return div;
+        }
+        
+        // NOVO: Revogar API Key (DELETE /apikeys/{id})
+        async function revogarApiKey(keyId) {
+            if (!confirm(`Tem certeza que deseja revogar a API Key ID ${keyId}?`)) {
+                return;
+            }
+            try {
+                await apiFetch(`/apikeys/${keyId}`, { method: 'DELETE' });
+                log(`API Key ID ${keyId} revogada com sucesso.`);
+                // Atualiza a lista de chaves (se o ID do usuário estiver no form)
+                const usuarioId = document.getElementById('list-key-usuario-id').value;
+                if(usuarioId) listarApiKeys(usuarioId);
+            } catch (error) {
+                log(`Erro ao revogar key ID ${keyId}: ${error.message}`, true);
+            }
+        }
+
+
+        // --- Lógica de ARTISTAS (com Edição) ---
+
+        // NOVO: Submit do form de Artista (Criação e Edição)
+        document.getElementById('form-artista').addEventListener('submit', async function(e) {
             e.preventDefault();
+            const artistaId = document.getElementById('artista-id-edit').value;
+            
             const body = {
                 nome: document.getElementById('artista-nome').value,
                 generoMusical: document.getElementById('artista-genero').value,
                 biografia: document.getElementById('artista-bio').value
             };
-
-            try {
-                const novoArtista = await apiFetch('/artistas', {
-                    method: 'POST',
-                    body: JSON.stringify(body),
-                });
-                log(`Artista "${novoArtista.nome}" criado com ID: ${novoArtista.id}.`);
-                this.reset();
-                listarArtistas();
-            } catch (error) {
-                log(`Falha ao criar artista: ${error.message}`, true);
+            
+            if (artistaId) {
+                // Modo Edição (PUT)
+                try {
+                    const artistaAtualizado = await apiFetch(`/artistas/${artistaId}`, {
+                        method: 'PUT',
+                        body: JSON.stringify(body),
+                    });
+                    log(`Artista "${artistaAtualizado.nome}" (ID: ${artistaId}) atualizado.`);
+                    cancelarEdicaoArtista(); // Limpa o formulário
+                    listarArtistas();
+                } catch (error) {
+                    log(`Falha ao atualizar artista: ${error.message}`, true);
+                }
+            } else {
+                // Modo Criação (POST)
+                try {
+                    const novoArtista = await apiFetch('/artistas', {
+                        method: 'POST',
+                        body: JSON.stringify(body),
+                    });
+                    log(`Artista "${novoArtista.nome}" criado com ID: ${novoArtista.id}.`);
+                    this.reset();
+                    listarArtistas();
+                } catch (error) {
+                    log(`Falha ao criar artista: ${error.message}`, true);
+                }
             }
         });
 
@@ -565,6 +674,7 @@
                     return;
                 }
                 artistas.forEach(artista => {
+                    // Passa o objeto artista inteiro para a função de criação do card
                     container.appendChild(criarCardArtista(artista));
                 });
             } catch (error) {
@@ -586,47 +696,90 @@
             }
         }
         
+        // NOVO: Preencher formulário de Artista para edição
+        function preencherFormEdicaoArtista(artista) {
+            document.getElementById('form-artista-titulo').textContent = `Editando Artista: ${artista.nome}`;
+            document.getElementById('artista-id-edit').value = artista.id;
+            document.getElementById('artista-nome').value = artista.nome;
+            document.getElementById('artista-genero').value = artista.generoMusical;
+            document.getElementById('artista-bio').value = artista.biografia;
+            document.getElementById('btn-submit-artista').textContent = "Atualizar Artista";
+            document.getElementById('btn-cancelar-edicao-artista').style.display = 'inline-block';
+            document.getElementById('form-artista').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // NOVO: Cancelar edição de Artista
+        function cancelarEdicaoArtista() {
+            document.getElementById('form-artista-titulo').textContent = "Criar Novo Artista";
+            document.getElementById('form-artista').reset();
+            document.getElementById('artista-id-edit').value = "";
+            document.getElementById('btn-submit-artista').textContent = "Criar Artista";
+            document.getElementById('btn-cancelar-edicao-artista').style.display = 'none';
+        }
+
+        // Card de Artista (com botão Editar)
         function criarCardArtista(artista) {
             const div = document.createElement('div');
             div.className = 'card';
+            // Precisamos passar o objeto JSON inteiro, então escapamos as aspas
+            const artistaJson = JSON.stringify(artista).replace(/'/g, "\\'");
+            
             div.innerHTML = `
                 <h3>${artista.nome}</h3>
                 <p><strong>ID:</strong> ${artista.id}</p>
                 <p><strong>Gênero:</strong> ${artista.generoMusical || 'N/A'}</p>
                 <div class="card-acoes">
+                    <button onclick='preencherFormEdicaoArtista(${artistaJson})'>Editar</button>
                     <button class="delete" onclick="deletarArtista(${artista.id})">Excluir</button>
                 </div>
             `;
             return div;
         }
 
-        // --- Lógica de EVENTOS ---
+        // --- Lógica de EVENTOS (com Edição) ---
 
-        // POST /eventos
-        document.getElementById('form-criar-evento').addEventListener('submit', async function(e) {
+        // NOVO: Submit do form de Evento (Criação e Edição)
+        document.getElementById('form-evento').addEventListener('submit', async function(e) {
             e.preventDefault();
+            const eventoId = document.getElementById('evento-id-edit').value;
             const dataValor = document.getElementById('evento-data').value;
+            
             const body = {
                 nome: document.getElementById('evento-nome').value,
                 local: document.getElementById('evento-local').value,
-                dataEvento: dataValor,
+                dataEvento: dataValor, 
                 capacidadeMaxima: parseInt(document.getElementById('evento-capacidade').value),
                 precoIngresso: parseFloat(document.getElementById('evento-preco').value),
-                status: "DISPONIVEL", // O status padrão da sua Entidade
-                artistas: [] 
+                status: eventoId ? document.getElementById('evento-status').value : "DISPONIVEL", // Pega status do select se estiver editando
+                artistas: [] // A API de update lida com artistas separadamente
             };
             
-            try {
-                const novoEvento = await apiFetch('/eventos', {
-                    method: 'POST',
-                    body: JSON.stringify(body),
-                });
-                log(`Evento "${novoEvento.nome}" criado com ID: ${novoEvento.id}.`);
-                this.reset();
-                listarEventos();
-            } catch (error)
-            {
-                log(`Falha ao criar evento: ${error.message}`, true);
+            if (eventoId) {
+                // Modo Edição (PUT)
+                try {
+                    const eventoAtualizado = await apiFetch(`/eventos/${eventoId}`, {
+                        method: 'PUT',
+                        body: JSON.stringify(body),
+                    });
+                    log(`Evento "${eventoAtualizado.nome}" (ID: ${eventoId}) atualizado.`);
+                    cancelarEdicaoEvento();
+                    listarEventos();
+                } catch (error) {
+                    log(`Falha ao atualizar evento: ${error.message}`, true);
+                }
+            } else {
+                 // Modo Criação (POST)
+                try {
+                    const novoEvento = await apiFetch('/eventos', {
+                        method: 'POST',
+                        body: JSON.stringify(body),
+                    });
+                    log(`Evento "${novoEvento.nome}" criado com ID: ${novoEvento.id}.`);
+                    this.reset();
+                    listarEventos();
+                } catch (error) {
+                    log(`Falha ao criar evento: ${error.message}`, true);
+                }
             }
         });
 
@@ -665,16 +818,38 @@
             }
         }
 
-        // NOVO: Função para o botão "Comprar Ingresso"
-        function preencherFormCompra(eventoId, eventoNome) {
-            document.getElementById('form-compra-titulo').textContent = `Comprar Ingresso para: ${eventoNome}`;
-            document.getElementById('ingresso-evento-id').value = eventoId;
-            document.getElementById('form-comprar-ingresso').style.display = 'block';
+        // NOVO: Preencher formulário de Evento para edição
+        function preencherFormEdicaoEvento(evento) {
+            // A data da API (LocalDate) vem como "YYYY-MM-DD"
+            const dataApi = evento.dataEvento.split('T')[0];
             
-            // Rola a página até o formulário
-            document.getElementById('form-comprar-ingresso').scrollIntoView({ behavior: 'smooth' });
+            document.getElementById('form-evento-titulo').textContent = `Editando Evento: ${evento.nome}`;
+            document.getElementById('evento-id-edit').value = evento.id;
+            document.getElementById('evento-nome').value = evento.nome;
+            document.getElementById('evento-local').value = evento.local;
+            document.getElementById('evento-data').value = dataApi;
+            document.getElementById('evento-capacidade').value = evento.capacidadeMaxima;
+            document.getElementById('evento-preco').value = evento.precoIngresso;
+            
+            document.getElementById('campo-status-evento').style.display = 'block';
+            document.getElementById('evento-status').value = evento.status;
+            
+            document.getElementById('btn-submit-evento').textContent = "Atualizar Evento";
+            document.getElementById('btn-cancelar-edicao-evento').style.display = 'inline-block';
+            document.getElementById('form-evento').scrollIntoView({ behavior: 'smooth' });
         }
         
+        // NOVO: Cancelar edição de Evento
+        function cancelarEdicaoEvento() {
+            document.getElementById('form-evento-titulo').textContent = "Criar Novo Evento";
+            document.getElementById('form-evento').reset();
+            document.getElementById('evento-id-edit').value = "";
+            document.getElementById('campo-status-evento').style.display = 'none';
+            document.getElementById('btn-submit-evento').textContent = "Criar Evento";
+            document.getElementById('btn-cancelar-edicao-evento').style.display = 'none';
+        }
+
+        // Card de Evento (com botão Editar)
         function criarCardEvento(evento) {
             const div = document.createElement('div');
             div.className = 'card';
@@ -684,6 +859,9 @@
                 const parts = evento.dataEvento.split('T')[0].split('-');
                 dataFormatada = `${parts[2]}/${parts[1]}/${parts[0]}`;
             } catch (e) {}
+            
+            // Passa o objeto JSON do evento para o preenchimento do formulário
+            const eventoJson = JSON.stringify(evento).replace(/'/g, "\\'");
             
             div.innerHTML = `
                 <h3>${evento.nome}</h3>
@@ -696,6 +874,7 @@
                 
                 <div class="card-acoes">
                     <button class="buy" onclick="preencherFormCompra(${evento.id}, '${evento.nome.replace(/'/g, "\\'")}')">Comprar Ingresso</button>
+                    <button onclick='preencherFormEdicaoEvento(${eventoJson})'>Editar</button>
                     <button onclick="listarIngressos(${evento.id})">Ver Ingressos</button>
                     <button class="delete" onclick="deletarEvento(${evento.id})">Excluir</button>
                 </div>
@@ -703,9 +882,17 @@
             return div;
         }
 
-        // --- Lógica de INGRESSOS (NOVO e ATUALIZADO) ---
+        // --- Lógica de INGRESSOS (Comprar e Cancelar) ---
         
-        // NOVO: POST /eventos/{eventoId}/ingressos
+        // Função para o botão "Comprar Ingresso" (Preenche o form)
+        function preencherFormCompra(eventoId, eventoNome) {
+            document.getElementById('form-compra-titulo').textContent = `Comprar Ingresso para: ${eventoNome}`;
+            document.getElementById('ingresso-evento-id').value = eventoId;
+            document.getElementById('form-comprar-ingresso').style.display = 'block';
+            document.getElementById('form-comprar-ingresso').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // POST /eventos/{eventoId}/ingressos (CORRIGIDO)
         document.getElementById('form-comprar-ingresso').addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -714,11 +901,10 @@
                 nomeComprador: document.getElementById('ingresso-nome').value,
                 emailComprador: document.getElementById('ingresso-email').value,
                 quantidade: parseInt(document.getElementById('ingresso-quantidade').value)
-                // O eventoId é pego da URL, não do corpo
             };
             
-            // Gerar Idempotency-Key
-            const idempotencyKey = crypto.randomUUID();
+            // CORREÇÃO: crypto.randomUUID() pode falhar. Usando um método mais simples.
+            const idempotencyKey = Date.now().toString() + Math.random().toString();
             log(`Gerando Idempotency-Key: ${idempotencyKey}`);
             
             try {
@@ -733,9 +919,7 @@
                 this.reset();
                 this.style.display = 'none';
                 
-                // Atualiza a lista de ingressos vendidos para esse evento
                 listarIngressos(eventoId);
-                // Atualiza a lista de eventos (para mostrar capacidade/status atualizado)
                 listarEventos(); 
                 
             } catch (error) {
@@ -743,13 +927,11 @@
             }
         });
 
-        // GET /eventos/{id}/ingressos (Lógica antiga, sem mudanças)
+        // GET /eventos/{id}/ingressos (Listagem)
         async function listarIngressos(eventoId) {
              const container = document.getElementById('lista-ingressos');
              container.innerHTML = `<p>Carregando ingressos para o evento ID ${eventoId}...</p>`;
              try {
-                // Este endpoint é protegido e precisa da API Key.
-                // A função apiFetch agora envia a chave corretamente.
                 const ingressos = await apiFetch(`/eventos/${eventoId}/ingressos`);
                 container.innerHTML = `<h3>Ingressos do Evento ${eventoId}</h3>`;
                 
@@ -759,16 +941,8 @@
                 }
                 
                 ingressos.forEach(ingresso => {
-                    const div = document.createElement('div');
-                    div.className = 'card';
-                    div.innerHTML = `
-                        <h4>Ingresso ID: ${ingresso.id}</h4>
-                        <p><strong>Comprador:</strong> ${ingresso.nomeComprador} (${ingresso.emailComprador})</p>
-                        <p><strong>Qtde:</strong> ${ingresso.quantidade}</p>
-                        <p><strong>Status:</strong> ${ingresso.status}</p>
-                        <p><strong>Preço Total:</strong> R$ ${ingresso.precoTotal.toFixed(2)}</p>
-                    `;
-                    container.appendChild(div);
+                    // NOVO: Usa a função criarCardIngresso
+                    container.appendChild(criarCardIngresso(ingresso));
                 });
              } catch (error) {
                  if (error.message.includes("204")) {
@@ -778,6 +952,39 @@
                      container.innerHTML = `<p class="error">Erro ao carregar ingressos: ${error.message}</p>`;
                  }
              }
+        }
+        
+        // NOVO: Criar Card de Ingresso (com botão Cancelar)
+        function criarCardIngresso(ingresso) {
+             const div = document.createElement('div');
+             div.className = 'card';
+             div.innerHTML = `
+                <h4>Ingresso ID: ${ingresso.id}</h4>
+                <p><strong>Comprador:</strong> ${ingresso.nomeComprador} (${ingresso.emailComprador})</p>
+                <p><strong>Qtde:</strong> ${ingresso.quantidade}</p>
+                <p><strong>Status:</strong> ${ingresso.status}</p>
+                <p><strong>Preço Total:</strong> R$ ${ingresso.precoTotal.toFixed(2)}</p>
+                <div class="card-acoes">
+                    <button class="delete" onclick="cancelarIngresso(${ingresso.id}, ${ingresso.eventoId})">Cancelar Ingresso</button>
+                    </div>
+            `;
+            return div;
+        }
+        
+        // NOVO: Cancelar Ingresso (PUT /ingressos/{id}/status?status=CANCELADO)
+        async function cancelarIngresso(ingressoId, eventoId) {
+            if (!confirm(`Tem certeza que deseja cancelar o ingresso ID ${ingressoId}?`)) {
+                return;
+            }
+            try {
+                // Sua API aceita ?status=CANCELADO
+                await apiFetch(`/ingressos/${ingressoId}/status?status=CANCELADO`, { method: 'PUT' });
+                log(`Ingresso ID ${ingressoId} cancelado com sucesso.`);
+                listarIngressos(eventoId); // Atualiza a lista de ingressos
+                listarEventos(); // Atualiza a lista de eventos (status pode mudar)
+            } catch (error) {
+                log(`Erro ao cancelar ingresso ID ${ingressoId}: ${error.message}`, true);
+            }
         }
 
         // --- Inicialização ---

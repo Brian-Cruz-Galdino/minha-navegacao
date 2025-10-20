@@ -232,7 +232,8 @@
             <h2>Usuários e API Keys</h2>
             <div class="clearfix">
                 <div class="coluna-3">
-                    <form id="form-usuario"> <h3 id="form-usuario-titulo">Criar Novo Usuário</h3>
+                    <form id="form-usuario">
+                        <h3 id="form-usuario-titulo">Criar Novo Usuário</h3>
                         <input type="hidden" id="usuario-id-edit">
                         
                         <label for="usuario-nome">Nome:</label>
@@ -386,6 +387,30 @@
                 <button type="submit">Confirmar Compra</button>
              </form>
              
+             <form id="form-editar-ingresso" style="display: none; background-color: #332a2a;">
+                <h3 id="form-edita-titulo">Editar Ingresso</h3>
+                <input type="hidden" id="edit-ingresso-id">
+                <input type="hidden" id="edit-ingresso-evento-id"> <label for="edit-ingresso-nome">Nome do Comprador:</label>
+                <input type="text" id="edit-ingresso-nome" required>
+                
+                <label for="edit-ingresso-email">Email do Comprador:</label>
+                <input type="email" id="edit-ingresso-email" required>
+                
+                <label for="edit-ingresso-quantidade">Quantidade:</label>
+                <input type="number" id="edit-ingresso-quantidade" min="1" required>
+                
+                <label for="edit-ingresso-status">Status:</label>
+                <select id="edit-ingresso-status">
+                    <option value="RESERVADO">RESERVADO</option>
+                    <option value="PAGO">PAGO</option>
+                    <option value="CANCELADO">CANCELADO</option>
+                    <option value="UTILIZADO">UTILIZADO</option>
+                </select>
+
+                <button type="submit">Atualizar Ingresso</button>
+                <button type="button" class="btn-cancelar" onclick="cancelarEdicaoIngresso()">Cancelar</button>
+             </form>
+             
              <h3 style="margin-top: 20px;">Ingressos Vendidos</h3>
              <p>Use os botões "Ver Ingressos" nos cards de evento para listar os ingressos vendidos aqui.</p>
              <div id="lista-ingressos">
@@ -429,7 +454,6 @@
             logConsole.scrollTop = logConsole.scrollHeight;
         }
 
-        // Função que gera uma string aleatória simples para Idempotência
         function gerarIdempotencyKey() {
              return 'key-' + Date.now().toString() + '-' + Math.random().toString(36).substring(2, 9);
         }
@@ -491,9 +515,8 @@
             }
         }
         
-        // --- Lógica de USUÁRIOS E API KEYS (COM CRUD) ---
+        // --- Lógica de USUÁRIOS E API KEYS ---
         
-        // NOVO: Submit do form de Usuário (Criação e Edição)
         document.getElementById('form-usuario').addEventListener('submit', async function(e) {
             e.preventDefault();
             const usuarioId = document.getElementById('usuario-id-edit').value;
@@ -540,7 +563,6 @@
             }
         });
         
-        // POST /apikeys/generate/{id}
         document.getElementById('form-gerar-key').addEventListener('submit', async function(e) {
             e.preventDefault();
             const usuarioId = document.getElementById('key-usuario-id').value;
@@ -565,7 +587,6 @@
             }
         });
 
-        // GET /usuarios
         async function listarUsuarios() {
             const container = document.getElementById('lista-usuarios');
             container.innerHTML = "<p>Carregando usuários...</p>";
@@ -584,7 +605,6 @@
             }
         }
         
-        // NOVO: Preencher formulário de Usuário para edição
         function preencherFormEdicaoUsuario(usuario) {
             document.getElementById('form-usuario-titulo').textContent = `Editando Usuário: ${usuario.nome}`;
             document.getElementById('usuario-id-edit').value = usuario.id;
@@ -592,7 +612,6 @@
             document.getElementById('usuario-email').value = usuario.email;
             document.getElementById('usuario-tipo').value = usuario.tipo;
             
-            // Esconde o campo senha, pois não vamos atualizá-la
             document.getElementById('campo-senha-usuario').style.display = 'none';
             document.getElementById('usuario-senha').required = false;
             
@@ -601,7 +620,6 @@
             document.getElementById('form-usuario').scrollIntoView({ behavior: 'smooth' });
         }
 
-        // NOVO: Cancelar edição de Usuário
         function cancelarEdicaoUsuario() {
             document.getElementById('form-usuario-titulo').textContent = "Criar Novo Usuário";
             document.getElementById('form-usuario').reset();
@@ -614,7 +632,6 @@
             document.getElementById('btn-cancelar-edicao-usuario').style.display = 'none';
         }
         
-        // NOVO: Deletar Usuário (DELETE /usuarios/{id})
         async function deletarUsuario(id) {
             if (!confirm(`Tem certeza que deseja excluir o USUÁRIO ID ${id}? Isso revogará todas as suas API Keys.`)) {
                 return;
@@ -628,7 +645,6 @@
             }
         }
         
-        // Card de Usuário (com botões Editar/Excluir)
         function criarCardUsuario(usuario) {
             const div = document.createElement('div');
             div.className = 'card';
@@ -646,7 +662,6 @@
             return div;
         }
 
-        // GET /apikeys/usuario/{id}
         document.getElementById('form-listar-keys').addEventListener('submit', async function(e) {
              e.preventDefault();
              const usuarioId = document.getElementById('list-key-usuario-id').value;
@@ -685,7 +700,6 @@
             return div;
         }
         
-        // DELETE /apikeys/{id}
         async function revogarApiKey(keyId) {
             if (!confirm(`Tem certeza que deseja revogar a API Key ID ${keyId}?`)) {
                 return;
@@ -945,12 +959,12 @@
             return div;
         }
 
-        // --- Lógica de INGRESSOS (Comprar e Cancelar) ---
+        // --- Lógica de INGRESSOS (Comprar, Editar e Cancelar) ---
         
         function preencherFormCompra(eventoId, eventoNome) {
-            document.getElementById('form-compra-titulo').textContent = `Comprar Ingresso para: ${eventoNome}`;
-            document.getElementById('ingresso-evento-id').value = eventoId;
             document.getElementById('form-comprar-ingresso').style.display = 'block';
+            document.getElementById('form-edita-titulo').textContent = `Comprar Ingresso para: ${eventoNome}`;
+            document.getElementById('ingresso-evento-id').value = eventoId;
             document.getElementById('form-comprar-ingresso').scrollIntoView({ behavior: 'smooth' });
         }
         
@@ -962,10 +976,10 @@
             const body = {
                 nomeComprador: document.getElementById('ingresso-nome').value,
                 emailComprador: document.getElementById('ingresso-email').value,
-                quantidade: parseInt(document.getElementById('ingresso-quantidade').value)
+                quantidade: parseInt(document.getElementById('ingresso-quantidade').value),
+                eventoId: parseInt(eventoId) // <-- CORREÇÃO: Adicionado eventoId ao body
             };
             
-            // CORREÇÃO: Usando a chave correta (x-idempotency-key) e um gerador que funciona
             const idempotencyKey = gerarIdempotencyKey();
             log(`Gerando Idempotency-Key: ${idempotencyKey}`);
             
@@ -973,7 +987,7 @@
                 const novoIngresso = await apiFetch(`/eventos/${eventoId}/ingressos`, {
                     method: 'POST',
                     headers: {
-                        'x-idempotency-key': idempotencyKey // <--- MUDANÇA IMPORTANTE AQUI
+                        'x-idempotency-key': idempotencyKey 
                     },
                     body: JSON.stringify(body),
                 });
@@ -1015,9 +1029,61 @@
              }
         }
         
+        // NOVO: Submit do form "Editar Ingresso"
+        document.getElementById('form-editar-ingresso').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const ingressoId = document.getElementById('edit-ingresso-id').value;
+            const eventoId = document.getElementById('edit-ingresso-evento-id').value;
+            
+            // O backend (IngressoResource.java) PUT /{id} espera um objeto Ingresso
+            //
+            const body = {
+                nomeComprador: document.getElementById('edit-ingresso-nome').value,
+                emailComprador: document.getElementById('edit-ingresso-email').value,
+                quantidade: parseInt(document.getElementById('edit-ingresso-quantidade').value),
+                status: document.getElementById('edit-ingresso-status').value
+                // O endpoint PUT /{id} só atualiza estes 4 campos
+            };
+
+            try {
+                await apiFetch(`/ingressos/${ingressoId}`, {
+                    method: 'PUT',
+                    body: JSON.stringify(body)
+                });
+                log(`Ingresso ID ${ingressoId} atualizado com sucesso.`);
+                cancelarEdicaoIngresso();
+                listarIngressos(eventoId); // Recarrega a lista de ingressos
+            } catch (error) {
+                log(`Falha ao atualizar ingresso: ${error.message}`, true);
+            }
+        });
+        
+        // NOVO: Funções para preencher e cancelar o form de edição de ingresso
+        function preencherFormEdicaoIngresso(ingresso) {
+            // O 'ingresso' aqui é o IngressoRepresentation
+            document.getElementById('form-edita-titulo').textContent = `Editar Ingresso ID: ${ingresso.id}`;
+            document.getElementById('edit-ingresso-id').value = ingresso.id;
+            document.getElementById('edit-ingresso-evento-id').value = ingresso.eventoId; // Salva o eventoId
+            document.getElementById('edit-ingresso-nome').value = ingresso.nomeComprador;
+            document.getElementById('edit-ingresso-email').value = ingresso.emailComprador;
+            document.getElementById('edit-ingresso-quantidade').value = ingresso.quantidade;
+            document.getElementById('edit-ingresso-status').value = ingresso.status;
+
+            document.getElementById('form-editar-ingresso').style.display = 'block';
+            document.getElementById('form-editar-ingresso').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function cancelarEdicaoIngresso() {
+            document.getElementById('form-editar-ingresso').style.display = 'none';
+            document.getElementById('form-editar-ingresso').reset();
+        }
+        
+        // Card de Ingresso (com botão Editar e Cancelar)
         function criarCardIngresso(ingresso) {
              const div = document.createElement('div');
              div.className = 'card';
+             const ingressoJson = JSON.stringify(ingresso).replace(/'/g, "\\'");
+             
              div.innerHTML = `
                 <h4>Ingresso ID: ${ingresso.id}</h4>
                 <p><strong>Comprador:</strong> ${ingresso.nomeComprador} (${ingresso.emailComprador})</p>
@@ -1025,6 +1091,7 @@
                 <p><strong>Status:</strong> ${ingresso.status}</p>
                 <p><strong>Preço Total:</strong> R$ ${ingresso.precoTotal.toFixed(2)}</p>
                 <div class="card-acoes">
+                    <button onclick='preencherFormEdicaoIngresso(${ingressoJson})'>Editar</button>
                     <button class="delete" onclick="cancelarIngresso(${ingresso.id}, ${ingresso.eventoId})">Cancelar Ingresso</button>
                 </div>
             `;
@@ -1037,6 +1104,7 @@
                 return;
             }
             try {
+                // Chama o endpoint de status
                 await apiFetch(`/ingressos/${ingressoId}/status?status=CANCELADO`, { method: 'PUT' });
                 log(`Ingresso ID ${ingressoId} cancelado com sucesso.`);
                 listarIngressos(eventoId); 
